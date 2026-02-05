@@ -25,3 +25,7 @@ limits = { day = 50, minute = 10 }
 source_dir = "https://the-racing-api1.p.rapidapi.com/v1/"
 spaces_dir = "handykapp/theracingapi/"
 limits = { day = 50, second = 2 }
+
+[app]
+# Date when we switch from rapid horseracing (full results) to theracingapi (entries only)
+switch_date = "2023-03-11"
