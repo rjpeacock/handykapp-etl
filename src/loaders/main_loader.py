@@ -4,11 +4,18 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
+from pathlib import Path
+
 import pendulum
+import tomllib
 from prefect import flow, task
 from pymongo import ASCENDING as ASC
 
 from clients import mongo_client as client
+
+# Load settings
+with Path("settings.toml").open("rb") as f:
+    settings = tomllib.load(f)
 
 from .bha_loader import load_bha_data
 from .formdata_loader import load_formdata
@@ -66,7 +73,7 @@ def nuclear_reload():
     drop_database()
     spec_database()
     load_racecourses()
-    switch_date = pendulum.parse("2023-03-11").date()
+    switch_date = pendulum.parse(settings["app"]["switch_date"]).date()
     load_rapid_horseracing_entries(until_date=switch_date)
     load_theracingapi_data()
     load_bha_data()
