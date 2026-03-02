@@ -995,6 +995,33 @@ test = ["certifi (>=2024)", "cryptography-vectors (==46.0.3)", "pretend (>=0.7)"
 test-randomorder = ["pytest-randomly"]
 
 [[package]]
+name = "cyclopts"
+version = "4.6.0"
+description = "Intuitive, easy CLIs based on type hints."
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "cyclopts-4.6.0-py3-none-any.whl", hash = "sha256:0a891cb55bfd79a3cdce024db8987b33316aba11071e5258c21ac12a640ba9f2"},
+    {file = "cyclopts-4.6.0.tar.gz", hash = "sha256:483c4704b953ea6da742e8de15972f405d2e748d19a848a4d61595e8e5360ee5"},
+]
+
+[package.dependencies]
+attrs = ">=23.1.0"
+docstring-parser = ">=0.15,<4.0"
+rich = ">=13.6.0"
+rich-rst = ">=1.3.1,<2.0.0"
+
+[package.extras]
+debug = ["ipdb (>=0.13.9)", "line-profiler (>=3.5.1)"]
+dev = ["coverage[toml] (>=5.1)", "mkdocs (>=1.4.0)", "pre-commit (>=2.16.0)", "pydantic (>=2.11.2,<3.0.0)", "pytest (>=8.2.0)", "pytest-cov (>=3.0.0)", "pytest-mock (>=3.7.0)", "pyyaml (>=6.0.1)", "syrupy (>=4.0.0)", "toml (>=0.10.2,<1.0.0)", "trio (>=0.10.0)"]
+docs = ["gitpython (>=3.1.31)", "myst-parser[linkify] (>=3.0.1,<5.0.0)", "sphinx (>=7.4.7,<8.2.0)", "sphinx-autodoc-typehints (>=1.25.2,<4.0.0)", "sphinx-copybutton (>=0.5,<1.0)", "sphinx-rtd-dark-mode (>=1.3.0,<2.0.0)", "sphinx-rtd-theme (>=3.0.0,<4.0.0)"]
+mkdocs = ["markdown (>=3.3)", "mkdocs (>=1.4.0)", "pymdown-extensions (>=10.0)"]
+toml = ["tomli (>=2.0.0) ; python_version < \"3.11\""]
+trio = ["trio (>=0.10.0)"]
+yaml = ["pyyaml (>=6.0.1)"]
+
+[[package]]
 name = "dateparser"
 version = "1.2.2"
 description = "Date parsing library designed to parse dates from HTML pages"
@@ -1087,6 +1114,35 @@ dev = ["coverage (==7.2.7)", "pytest (==7.4.2)", "pytest-cov (==4.1.0)", "pytest
 docs = ["myst-parser (==0.18.0)", "sphinx (==5.1.1)"]
 ssh = ["paramiko (>=2.4.3)"]
 websockets = ["websocket-client (>=1.3.0)"]
+
+[[package]]
+name = "docstring-parser"
+version = "0.17.0"
+description = "Parse Python docstrings in reST, Google and Numpydoc format"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "docstring_parser-0.17.0-py3-none-any.whl", hash = "sha256:cf2569abd23dce8099b300f9b4fa8191e9582dda731fd533daf54c4551658708"},
+    {file = "docstring_parser-0.17.0.tar.gz", hash = "sha256:583de4a309722b3315439bb31d64ba3eebada841f2e2cee23b99df001434c912"},
+]
+
+[package.extras]
+dev = ["pre-commit (>=2.16.0) ; python_version >= \"3.9\"", "pydoctor (>=25.4.0)", "pytest"]
+docs = ["pydoctor (>=25.4.0)"]
+test = ["pytest"]
+
+[[package]]
+name = "docutils"
+version = "0.22.4"
+description = "Docutils -- Python Documentation Utilities"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "docutils-0.22.4-py3-none-any.whl", hash = "sha256:d0013f540772d1420576855455d050a2180186c91c15779301ac2ccb3eeb68de"},
+    {file = "docutils-0.22.4.tar.gz", hash = "sha256:4db53b1fde9abecbb74d91230d32ab626d94f6badfc575d6db9194a49df29968"},
+]
 
 [[package]]
 name = "editor"
@@ -3438,14 +3494,14 @@ testing = ["coverage", "pytest", "pytest-benchmark"]
 
 [[package]]
 name = "prefect"
-version = "3.6.16"
+version = "3.6.20"
 description = "Workflow orchestration and management."
 optional = false
 python-versions = "<3.15,>=3.10"
 groups = ["main"]
 files = [
-    {file = "prefect-3.6.16-py3-none-any.whl", hash = "sha256:6823730e6fbe365b89a9ec949557564e140f8912b34dcab69aa5d6f22af4047b"},
-    {file = "prefect-3.6.16.tar.gz", hash = "sha256:c9d74be562cfe790bd11f6ee9e70137489e2669ca198b6cb4136f0374dc347a5"},
+    {file = "prefect-3.6.20-py3-none-any.whl", hash = "sha256:07bc3a04bc897c0b22e1555b409c2acbc57cea7f3b2edc2a2c860665a14da6e3"},
+    {file = "prefect-3.6.20.tar.gz", hash = "sha256:3dec3dd21034ff2659202fdde3a6b663cb53147c75322f56721b610263515759"},
 ]
 
 [package.dependencies]
@@ -3459,15 +3515,16 @@ asyncpg = ">=0.23,<1.0.0"
 cachetools = ">=5.3,<8.0"
 click = ">=8.0,<9"
 cloudpickle = ">=2.0,<4.0"
-coolname = ">=1.0.4,<4.0.0"
+coolname = ">=1.0.4,<5.0.0"
 cryptography = ">=36.0.1"
+cyclopts = ">=3.0"
 dateparser = ">=1.1.1,<2.0.0"
 docker = ">=4.0,<8.0"
 exceptiongroup = ">=1.0.0"
 fastapi = ">=0.111.0,<1.0.0"
 fsspec = ">=2022.5.0"
 graphviz = ">=0.20.1"
-griffe = ">=0.49.0,<2.0.0"
+griffe = ">=0.49.0,<3.0.0"
 httpcore = ">=1.0.5,<2.0.0"
 httpx = {version = ">=0.23,<0.23.2 || >0.23.2", extras = ["http2"]}
 humanize = ">=4.9.0,<5.0.0"
@@ -3485,7 +3542,7 @@ pydantic = ">=2.10.1,<2.11.0 || >2.11.0,<2.11.1 || >2.11.1,<2.11.2 || >2.11.2,<2
 pydantic-core = ">=2.12.0,<3.0.0"
 pydantic-extra-types = ">=2.8.2,<3.0.0"
 pydantic-settings = ">2.2.1,<2.9.0 || >2.9.0,<3.0.0"
-pydocket = ">=0.17.2"
+pydocket = ">=0.17.7"
 python-dateutil = ">=2.8.2,<3.0.0"
 python-slugify = ">=5.0,<9.0"
 pytz = ">=2021.1,<2026"
@@ -3499,7 +3556,6 @@ semver = ">=3.0.4"
 sniffio = ">=1.3.0,<2.0.0"
 sqlalchemy = {version = ">=2.0,<3.0.0", extras = ["asyncio"]}
 toml = ">=0.10.0"
-typer = ">=0.16.0,<0.22.0"
 typing-extensions = ">=4.10.0,<5.0.0"
 uvicorn = ">=0.14.0,<0.29.0 || >0.29.0"
 websockets = ">=15.0.1,<17.0"
@@ -3996,14 +4052,14 @@ yaml = ["pyyaml (>=6.0.1)"]
 
 [[package]]
 name = "pydocket"
-version = "0.17.5"
+version = "0.17.9"
 description = "A distributed background task system for Python functions"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "pydocket-0.17.5-py3-none-any.whl", hash = "sha256:544d7c2625a33e52528ac24db25794841427dfc2cf30b9c558ac387c77746241"},
-    {file = "pydocket-0.17.5.tar.gz", hash = "sha256:19a6976d8fd11c1acf62feb0291a339e06beaefa100f73dd38c6499760ad3e62"},
+    {file = "pydocket-0.17.9-py3-none-any.whl", hash = "sha256:3f48f40d6250a33c70622b0d6c3841ed23feb3997f8e4440acd5073cd43fa044"},
+    {file = "pydocket-0.17.9.tar.gz", hash = "sha256:4b98b9951303fba2b77649969539d501500cd0b0e5accc27e03b16c25a76f3e6"},
 ]
 
 [package.dependencies]
@@ -4018,6 +4074,7 @@ redis = ">=5"
 rich = ">=13.9.4"
 typer = ">=0.15.1"
 typing-extensions = ">=4.12.0"
+tzdata = {version = ">=2025.2", markers = "sys_platform == \"win32\""}
 
 [package.extras]
 metrics = ["opentelemetry-sdk (>=1.33.0)"]
@@ -4702,6 +4759,25 @@ pygments = ">=2.13.0,<3.0.0"
 
 [package.extras]
 jupyter = ["ipywidgets (>=7.5.1,<9)"]
+
+[[package]]
+name = "rich-rst"
+version = "1.3.2"
+description = "A beautiful reStructuredText renderer for rich"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "rich_rst-1.3.2-py3-none-any.whl", hash = "sha256:a99b4907cbe118cf9d18b0b44de272efa61f15117c61e39ebdc431baf5df722a"},
+    {file = "rich_rst-1.3.2.tar.gz", hash = "sha256:a1196fdddf1e364b02ec68a05e8ff8f6914fee10fbca2e6b6735f166bb0da8d4"},
+]
+
+[package.dependencies]
+docutils = "*"
+rich = ">=12.0.0"
+
+[package.extras]
+docs = ["sphinx"]
 
 [[package]]
 name = "rpds-py"
@@ -6016,4 +6092,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.13"
-content-hash = "a3bffe08712801a779b2b7645973767621ce085fd71872360f4c3d0277793508"
+content-hash = "459c58920d27e1da9a810c86223ccc027bc0c595487f263d82cefb23419b1343"
