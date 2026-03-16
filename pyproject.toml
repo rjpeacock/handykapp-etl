@@ -19,7 +19,7 @@ pydantic = "^2.12.5"
 pydantic-extra-types = "^2.11.0"
 pymongo = "^4.16.0"
 python = "~3.13"
-python-dotenv = "^1.2.1"
+python-dotenv = "^1.2.2"
 pymupdf = "^1.22.5" # NB >=1.23 interprets Irish apostrophe as some sort of file end marker
 
 [tool.poetry.group.dev.dependencies]
