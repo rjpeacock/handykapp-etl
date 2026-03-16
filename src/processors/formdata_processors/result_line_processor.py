@@ -61,7 +61,7 @@ def result_line_processor() -> Generator[None, tuple[dict, FormdataRun], None]:
                 )
                 going_assessment = str(Going(going_value))
                 db.races.update_one(
-                    {"_id": race_id, "runners.horse": horse.id},
+                    {"_id": race_id, "runners.horse": horse["_id"]},
                     {
                         "$set": {
                             "going_assessment": going_assessment,
