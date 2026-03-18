@@ -1,3 +1,3 @@
 [submodule "docs/agent-standards"]
 	path = docs/agent-standards
-	url = git@github.com:peaky76/agent-standards.git
+	url = git@github.com:rjpeacock/agent-standards.git
