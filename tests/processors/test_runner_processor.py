@@ -1,17 +1,10 @@
 import pytest
 import importlib
-import sys
 
-
-def get_runner_processor_module():
-    if "src.processors.runner_processor" in sys.modules:
-        del sys.modules["src.processors.runner_processor"]
-    return importlib.import_module("src.processors.runner_processor")
+rp_module = importlib.import_module("processors.runner_processor")
 
 
 def test_make_runner_dict(mocker):
-    rp_module = get_runner_processor_module()
-    
     horse = mocker.MagicMock()
     horse._id = "horse_1"
     
@@ -21,8 +14,6 @@ def test_make_runner_dict(mocker):
 
 
 def test_collect_people_with_trainer_and_jockey(mocker):
-    rp_module = get_runner_processor_module()
-    
     horse = mocker.MagicMock()
     horse.trainer = "John Smith"
     horse.jockey = "Jane Doe"
@@ -37,8 +28,6 @@ def test_collect_people_with_trainer_and_jockey(mocker):
 
 
 def test_collect_people_with_only_jockey(mocker):
-    rp_module = get_runner_processor_module()
-    
     horse = mocker.MagicMock()
     horse.trainer = None
     horse.jockey = "Jane Doe"

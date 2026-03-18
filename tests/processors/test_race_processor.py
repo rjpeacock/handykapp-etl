@@ -1,17 +1,11 @@
 import pytest
-from pendulum import DateTime
 import importlib
-import sys
+from pendulum import DateTime
 
-
-def get_race_processor_module():
-    if "src.processors.race_processor" in sys.modules:
-        del sys.modules["src.processors.race_processor"]
-    return importlib.import_module("src.processors.race_processor")
+rp_module = importlib.import_module("processors.race_processor")
 
 
 def test_make_update_dictionary(mock_db, mocker):
-    rp_module = get_race_processor_module()
     mocker.patch.object(rp_module, "db", mock_db)
     
     race = mocker.MagicMock()

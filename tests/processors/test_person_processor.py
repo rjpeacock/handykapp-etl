@@ -1,19 +1,13 @@
 import pytest
 from pymongo.errors import DuplicateKeyError
 import importlib
-import sys
 
-from src.models import PreMongoPerson
+from models import PreMongoPerson
 
-
-def get_person_processor_module():
-    if "src.processors.person_processor" in sys.modules:
-        del sys.modules["src.processors.person_processor"]
-    return importlib.import_module("src.processors.person_processor")
+pp_module = importlib.import_module("processors.person_processor")
 
 
 def test_preload_person_cache_returns_empty_for_no_names(mock_db, mocker):
-    pp_module = get_person_processor_module()
     mocker.patch.object(pp_module, "db", mock_db)
     
     result = pp_module.preload_person_cache([], "source1")
@@ -22,8 +16,6 @@ def test_preload_person_cache_returns_empty_for_no_names(mock_db, mocker):
 
 
 def test_preload_person_cache_returns_matching_people(mock_db, mocker):
-    pp_module = get_person_processor_module()
-    
     mock_db.people.insert_many([
         {"_id": "p1", "references": {"source1": "John Smith"}},
         {"_id": "p2", "references": {"source1": "Jane Doe"}},
@@ -40,8 +32,6 @@ def test_preload_person_cache_returns_matching_people(mock_db, mocker):
 
 
 def test_person_processor_adds_new_person(mock_db, mocker):
-    pp_module = get_person_processor_module()
-    
     def mock_insert_one(doc):
         doc["_id"] = "new_person_id"
         return mocker.MagicMock(inserted_id="new_person_id")
@@ -51,6 +41,7 @@ def test_person_processor_adds_new_person(mock_db, mocker):
     mock_db.people.find = mock_find
 
     mocker.patch.object(pp_module, "db", mock_db)
+    mocker.patch.object(pp_module, "get_run_logger", return_value=mocker.MagicMock())
 
     gen = pp_module.person_processor()
     next(gen)
@@ -66,8 +57,6 @@ def test_person_processor_adds_new_person(mock_db, mocker):
 
 
 def test_person_processor_updates_existing_person(mock_db, mocker):
-    pp_module = get_person_processor_module()
-    
     mock_db.people.insert_one({
         "_id": "existing_id",
         "first": "John",
@@ -76,6 +65,7 @@ def test_person_processor_updates_existing_person(mock_db, mocker):
     })
     
     mocker.patch.object(pp_module, "db", mock_db)
+    mocker.patch.object(pp_module, "get_run_logger", return_value=mocker.MagicMock())
 
     mock_find = mocker.MagicMock(return_value=iter([
         {"_id": "existing_id", "first": "John", "last": "Smith", "title": None}
@@ -102,8 +92,6 @@ def test_person_processor_updates_existing_person(mock_db, mocker):
 
 
 def test_person_processor_handles_duplicate_key_error(mock_db, mocker):
-    pp_module = get_person_processor_module()
-    
     def mock_insert_one(doc):
         raise DuplicateKeyError("duplicate key")
     mock_db.people.insert_one = mock_insert_one
@@ -112,6 +100,7 @@ def test_person_processor_handles_duplicate_key_error(mock_db, mocker):
     mock_db.people.find = mock_find
 
     mocker.patch.object(pp_module, "db", mock_db)
+    mocker.patch.object(pp_module, "get_run_logger", return_value=mocker.MagicMock())
 
     gen = pp_module.person_processor()
     next(gen)
