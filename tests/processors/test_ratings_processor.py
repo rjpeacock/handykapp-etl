@@ -1,10 +1,8 @@
 import pytest
-import importlib
 
 from models import PreMongoHorse
 from models.mongo_horse import MongoOfficialRatings
-
-rp_module = importlib.import_module("processors.ratings_processor")
+from processors.ratings_processor import ratings_processor
 
 
 def test_ratings_processor_inserts_ratings(mock_db, mocker):
@@ -15,13 +13,11 @@ def test_ratings_processor_inserts_ratings(mock_db, mocker):
             mock_db.horses.update_one(op._filter, op._doc)
     
     mock_db.horses.bulk_write = mock_bulk_write
-    mocker.patch.object(rp_module, "db", mock_db)
-    mocker.patch.object(rp_module, "get_run_logger", return_value=mocker.MagicMock())
-
-    get_horse = mocker.patch.object(rp_module, "get_horse")
-    get_horse.return_value = {"_id": "horse_id_1", "name": "Test Horse"}
+    mocker.patch("processors.ratings_processor.db", mock_db)
+    mocker.patch("processors.ratings_processor.get_run_logger", return_value=mocker.MagicMock())
+    mocker.patch("processors.ratings_processor.get_horse", return_value={"_id": "horse_id_1", "name": "Test Horse"})
     
-    gen = rp_module.ratings_processor()
+    gen = ratings_processor()
     next(gen)
     gen.send(PreMongoHorse(
         name="Test Horse",
@@ -42,13 +38,11 @@ def test_ratings_processor_skips_missing_horse(mock_db, mocker):
             mock_db.horses.update_one(op._filter, op._doc)
     
     mock_db.horses.bulk_write = mock_bulk_write
-    mocker.patch.object(rp_module, "db", mock_db)
-    mocker.patch.object(rp_module, "get_run_logger", return_value=mocker.MagicMock())
-
-    get_horse = mocker.patch.object(rp_module, "get_horse")
-    get_horse.return_value = None
+    mocker.patch("processors.ratings_processor.db", mock_db)
+    mocker.patch("processors.ratings_processor.get_run_logger", return_value=mocker.MagicMock())
+    mocker.patch("processors.ratings_processor.get_horse", return_value=None)
     
-    gen = rp_module.ratings_processor()
+    gen = ratings_processor()
     next(gen)
     gen.send(PreMongoHorse(
         name="Test Horse",
@@ -69,13 +63,11 @@ def test_ratings_processor_handles_no_ratings(mock_db, mocker):
             mock_db.horses.update_one(op._filter, op._doc)
     
     mock_db.horses.bulk_write = mock_bulk_write
-    mocker.patch.object(rp_module, "db", mock_db)
-    mocker.patch.object(rp_module, "get_run_logger", return_value=mocker.MagicMock())
-
-    get_horse = mocker.patch.object(rp_module, "get_horse")
-    get_horse.return_value = {"_id": "horse_id_1", "name": "Test Horse"}
+    mocker.patch("processors.ratings_processor.db", mock_db)
+    mocker.patch("processors.ratings_processor.get_run_logger", return_value=mocker.MagicMock())
+    mocker.patch("processors.ratings_processor.get_horse", return_value={"_id": "horse_id_1", "name": "Test Horse"})
     
-    gen = rp_module.ratings_processor()
+    gen = ratings_processor()
     next(gen)
     gen.send(PreMongoHorse(
         name="Test Horse",
@@ -95,13 +87,11 @@ def test_ratings_processor_bulk_operations(mock_db, mocker):
         bulk_write_calls.append(operations)
     
     mock_db.horses.bulk_write = mock_bulk_write
-    mocker.patch.object(rp_module, "db", mock_db)
-    mocker.patch.object(rp_module, "get_run_logger", return_value=mocker.MagicMock())
-
-    get_horse = mocker.patch.object(rp_module, "get_horse")
-    get_horse.return_value = {"_id": "horse_id", "name": "Test Horse"}
+    mocker.patch("processors.ratings_processor.db", mock_db)
+    mocker.patch("processors.ratings_processor.get_run_logger", return_value=mocker.MagicMock())
+    mocker.patch("processors.ratings_processor.get_horse", return_value={"_id": "horse_id", "name": "Test Horse"})
     
-    gen = rp_module.ratings_processor()
+    gen = ratings_processor()
     next(gen)
 
     for i in range(60):
@@ -126,13 +116,11 @@ def test_ratings_processor_generator_exit_flushes_remaining(mock_db, mocker):
         bulk_write_calls.append(operations)
     
     mock_db.horses.bulk_write = mock_bulk_write
-    mocker.patch.object(rp_module, "db", mock_db)
-    mocker.patch.object(rp_module, "get_run_logger", return_value=mocker.MagicMock())
-
-    get_horse = mocker.patch.object(rp_module, "get_horse")
-    get_horse.return_value = {"_id": "horse_id", "name": "Test Horse"}
+    mocker.patch("processors.ratings_processor.db", mock_db)
+    mocker.patch("processors.ratings_processor.get_run_logger", return_value=mocker.MagicMock())
+    mocker.patch("processors.ratings_processor.get_horse", return_value={"_id": "horse_id", "name": "Test Horse"})
     
-    gen = rp_module.ratings_processor()
+    gen = ratings_processor()
     next(gen)
 
     for i in range(30):
