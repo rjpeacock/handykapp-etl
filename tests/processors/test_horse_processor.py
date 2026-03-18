@@ -1,11 +1,12 @@
 import pytest
 from pymongo.errors import DuplicateKeyError
-import importlib
 
-import models
 from models import PreMongoHorse
-
-hp_module = importlib.import_module("processors.horse_processor")
+from processors.horse_processor import (
+    make_horse_update_dictionary,
+    make_horse_insert_dictionary,
+    horse_processor,
+)
 
 
 def test_make_horse_update_dictionary_with_all_fields(mocker):
@@ -23,10 +24,9 @@ def test_make_horse_update_dictionary_with_all_fields(mocker):
         "year": 2020,
     }
     
-    get_horse = mocker.patch.object(hp_module, "get_horse")
-    get_horse.return_value = {"_id": "sire_1"}
+    mocker.patch("processors.horse_processor.get_horse", return_value={"_id": "sire_1"})
     
-    result = hp_module.make_horse_update_dictionary(horse, db_horse)
+    result = make_horse_update_dictionary(horse, db_horse)
     
     assert result["colour"] == "Bay"
 
@@ -47,10 +47,9 @@ def test_make_horse_update_dictionary_with_sire(mocker):
         "year": 2020,
     }
     
-    get_horse = mocker.patch.object(hp_module, "get_horse")
-    get_horse.return_value = {"_id": "sire_1"}
+    mocker.patch("processors.horse_processor.get_horse", return_value={"_id": "sire_1"})
     
-    result = hp_module.make_horse_update_dictionary(horse, db_horse)
+    result = make_horse_update_dictionary(horse, db_horse)
     
     assert result["sire"] == "sire_1"
 
@@ -64,10 +63,9 @@ def test_make_horse_insert_dictionary_with_all_fields(mocker):
         colour="Bay",
     )
     
-    get_horse = mocker.patch.object(hp_module, "get_horse")
-    get_horse.return_value = {"_id": "sire_1"}
+    mocker.patch("processors.horse_processor.get_horse", return_value={"_id": "sire_1"})
     
-    result = hp_module.make_horse_insert_dictionary(horse)
+    result = make_horse_insert_dictionary(horse)
     
     assert result["name"] == "Test Horse"
     assert result["country"] == "GB"
@@ -88,10 +86,9 @@ def test_make_horse_insert_dictionary_with_sire_and_dam(mocker):
         dam=dam,
     )
     
-    get_horse = mocker.patch.object(hp_module, "get_horse")
-    get_horse.return_value = {"_id": "parent_1"}
+    mocker.patch("processors.horse_processor.get_horse", return_value={"_id": "parent_1"})
     
-    result = hp_module.make_horse_insert_dictionary(horse)
+    result = make_horse_insert_dictionary(horse)
     
     assert "sire" in result
     assert "dam" in result
@@ -101,13 +98,11 @@ def test_horse_processor_inserts_new_horse(mock_db, mocker):
     mock_insert_one = mocker.patch.object(mock_db.horses, "insert_one")
     mock_insert_one.return_value = mocker.MagicMock(inserted_id="generated_id")
     
-    mocker.patch.object(hp_module, "db", mock_db)
-    mocker.patch.object(hp_module, "get_run_logger", return_value=mocker.MagicMock())
-
-    get_horse = mocker.patch.object(hp_module, "get_horse")
-    get_horse.return_value = None
+    mocker.patch("processors.horse_processor.db", mock_db)
+    mocker.patch("processors.horse_processor.get_run_logger", return_value=mocker.MagicMock())
+    mocker.patch("processors.horse_processor.get_horse", return_value=None)
     
-    gen = hp_module.horse_processor()
+    gen = horse_processor()
     next(gen)
     
     horse = PreMongoHorse(
@@ -121,11 +116,9 @@ def test_horse_processor_inserts_new_horse(mock_db, mocker):
 
 def test_horse_processor_updates_existing_horse(mock_db, mocker):
     mock_db.horses.insert_one({"_id": "horse_1", "name": "Existing Horse", "country": "GB", "year": 2020})
-    mocker.patch.object(hp_module, "db", mock_db)
-    mocker.patch.object(hp_module, "get_run_logger", return_value=mocker.MagicMock())
-
-    get_horse = mocker.patch.object(hp_module, "get_horse")
-    get_horse.return_value = {"_id": "horse_1", "name": "Existing Horse"}
+    mocker.patch("processors.horse_processor.db", mock_db)
+    mocker.patch("processors.horse_processor.get_run_logger", return_value=mocker.MagicMock())
+    mocker.patch("processors.horse_processor.get_horse", return_value={"_id": "horse_1", "name": "Existing Horse"})
     
     bulk_write_calls = []
     def mock_bulk_write(operations):
@@ -133,7 +126,7 @@ def test_horse_processor_updates_existing_horse(mock_db, mocker):
     
     mock_db.horses.bulk_write = mock_bulk_write
     
-    gen = hp_module.horse_processor()
+    gen = horse_processor()
     next(gen)
     
     horse = PreMongoHorse(
@@ -152,13 +145,11 @@ def test_horse_processor_handles_duplicate_key_error(mock_db, mocker):
     mock_insert_one = mocker.patch.object(mock_db.horses, "insert_one")
     mock_insert_one.side_effect = DuplicateKeyError("duplicate key")
     
-    mocker.patch.object(hp_module, "db", mock_db)
-    mocker.patch.object(hp_module, "get_run_logger", return_value=mocker.MagicMock())
-
-    get_horse = mocker.patch.object(hp_module, "get_horse")
-    get_horse.return_value = None
+    mocker.patch("processors.horse_processor.db", mock_db)
+    mocker.patch("processors.horse_processor.get_run_logger", return_value=mocker.MagicMock())
+    mocker.patch("processors.horse_processor.get_horse", return_value=None)
     
-    gen = hp_module.horse_processor()
+    gen = horse_processor()
     next(gen)
     
     horse = PreMongoHorse(

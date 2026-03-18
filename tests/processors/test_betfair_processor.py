@@ -1,18 +1,16 @@
 import pytest
 from pymongo.errors import DuplicateKeyError
-import importlib
 import pendulum
 
 from models.mongo_betfair_horserace_pnl import MongoBetfairHorseracePnl
-
-bp_module = importlib.import_module("processors.betfair_processor")
+from processors.betfair_processor import betfair_processor
 
 
 def test_betfair_processor_inserts_pnl(mock_db, mocker):
-    mocker.patch.object(bp_module, "db", mock_db)
-    mocker.patch.object(bp_module, "get_run_logger", return_value=mocker.MagicMock())
+    mocker.patch("processors.betfair_processor.db", mock_db)
+    mocker.patch("processors.betfair_processor.get_run_logger", return_value=mocker.MagicMock())
 
-    gen = bp_module.betfair_processor()
+    gen = betfair_processor()
     next(gen)
     
     pnl = MongoBetfairHorseracePnl(
@@ -32,10 +30,10 @@ def test_betfair_processor_inserts_pnl(mock_db, mocker):
 def test_betfair_processor_handles_duplicate_key_error(mock_db, mocker):
     mock_insert_one = mocker.patch.object(mock_db.betfair, "insert_one")
     mock_insert_one.side_effect = DuplicateKeyError("duplicate key")
-    mocker.patch.object(bp_module, "db", mock_db)
-    mocker.patch.object(bp_module, "get_run_logger", return_value=mocker.MagicMock())
+    mocker.patch("processors.betfair_processor.db", mock_db)
+    mocker.patch("processors.betfair_processor.get_run_logger", return_value=mocker.MagicMock())
 
-    gen = bp_module.betfair_processor()
+    gen = betfair_processor()
     next(gen)
     
     pnl = MongoBetfairHorseracePnl(

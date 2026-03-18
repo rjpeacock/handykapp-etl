@@ -2,11 +2,11 @@ import pytest
 import importlib
 from pendulum import DateTime
 
-rp_module = importlib.import_module("processors.race_processor")
+from processors.race_processor import make_update_dictionary
 
 
 def test_make_update_dictionary(mock_db, mocker):
-    mocker.patch.object(rp_module, "db", mock_db)
+    mocker.patch("processors.race_processor.db", mock_db)
     
     race = mocker.MagicMock()
     race.datetime = DateTime(2024, 1, 1, 14, 0, 0)
@@ -21,7 +21,7 @@ def test_make_update_dictionary(mock_db, mocker):
     race.prize = 10000
     race.rapid_id = "12345"
     
-    result = rp_module.make_update_dictionary(race, "course_1")
+    result = make_update_dictionary(race, "course_1")
     
     assert result["racecourse"] == "course_1"
     assert result["title"] == "1:00 Ascot"
