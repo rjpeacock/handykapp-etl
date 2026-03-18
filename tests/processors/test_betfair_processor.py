@@ -8,7 +8,7 @@ from processors.betfair_processor import betfair_processor
 
 def test_betfair_processor_inserts_pnl(mock_db, mocker):
     mocker.patch("processors.betfair_processor.db", mock_db)
-    mocker.patch("processors.betfair_processor.get_run_logger", return_value=mocker.MagicMock())
+    mocker.patch("processors.betfair_processor.get_run_logger")
 
     gen = betfair_processor()
     next(gen)
@@ -31,7 +31,7 @@ def test_betfair_processor_handles_duplicate_key_error(mock_db, mocker):
     mock_insert_one = mocker.patch.object(mock_db.betfair, "insert_one")
     mock_insert_one.side_effect = DuplicateKeyError("duplicate key")
     mocker.patch("processors.betfair_processor.db", mock_db)
-    mocker.patch("processors.betfair_processor.get_run_logger", return_value=mocker.MagicMock())
+    mocker.patch("processors.betfair_processor.get_run_logger")
 
     gen = betfair_processor()
     next(gen)
