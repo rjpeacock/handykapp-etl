@@ -42,7 +42,7 @@ def test_person_processor_adds_new_person(mock_db, mocker):
     mock_db.people.find = mock_find
 
     mocker.patch("processors.person_processor.db", mock_db)
-    mocker.patch("processors.person_processor.get_run_logger", return_value=mocker.MagicMock())
+    mocker.patch("processors.person_processor.get_run_logger")
 
     gen = person_processor()
     next(gen)
@@ -66,7 +66,7 @@ def test_person_processor_updates_existing_person(mock_db, mocker):
     })
     
     mocker.patch("processors.person_processor.db", mock_db)
-    mocker.patch("processors.person_processor.get_run_logger", return_value=mocker.MagicMock())
+    mocker.patch("processors.person_processor.get_run_logger")
 
     mock_find = mocker.MagicMock(return_value=iter([
         {"_id": "existing_id", "first": "John", "last": "Smith", "title": None}
@@ -101,7 +101,7 @@ def test_person_processor_handles_duplicate_key_error(mock_db, mocker):
     mock_db.people.find = mock_find
 
     mocker.patch("processors.person_processor.db", mock_db)
-    mocker.patch("processors.person_processor.get_run_logger", return_value=mocker.MagicMock())
+    mocker.patch("processors.person_processor.get_run_logger")
 
     gen = person_processor()
     next(gen)

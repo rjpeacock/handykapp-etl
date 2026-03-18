@@ -99,7 +99,7 @@ def test_horse_processor_inserts_new_horse(mock_db, mocker):
     mock_insert_one.return_value = mocker.MagicMock(inserted_id="generated_id")
     
     mocker.patch("processors.horse_processor.db", mock_db)
-    mocker.patch("processors.horse_processor.get_run_logger", return_value=mocker.MagicMock())
+    mocker.patch("processors.horse_processor.get_run_logger")
     mocker.patch("processors.horse_processor.get_horse", return_value=None)
     
     gen = horse_processor()
@@ -117,7 +117,7 @@ def test_horse_processor_inserts_new_horse(mock_db, mocker):
 def test_horse_processor_updates_existing_horse(mock_db, mocker):
     mock_db.horses.insert_one({"_id": "horse_1", "name": "Existing Horse", "country": "GB", "year": 2020})
     mocker.patch("processors.horse_processor.db", mock_db)
-    mocker.patch("processors.horse_processor.get_run_logger", return_value=mocker.MagicMock())
+    mocker.patch("processors.horse_processor.get_run_logger")
     mocker.patch("processors.horse_processor.get_horse", return_value={"_id": "horse_1", "name": "Existing Horse"})
     
     bulk_write_calls = []
@@ -146,7 +146,7 @@ def test_horse_processor_handles_duplicate_key_error(mock_db, mocker):
     mock_insert_one.side_effect = DuplicateKeyError("duplicate key")
     
     mocker.patch("processors.horse_processor.db", mock_db)
-    mocker.patch("processors.horse_processor.get_run_logger", return_value=mocker.MagicMock())
+    mocker.patch("processors.horse_processor.get_run_logger")
     mocker.patch("processors.horse_processor.get_horse", return_value=None)
     
     gen = horse_processor()
