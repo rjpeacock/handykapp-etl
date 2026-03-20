@@ -8,6 +8,7 @@ from pydantic_extra_types.pendulum_dt import Date
 from requests import ConnectionError as RequestsConnectionError
 from requests import Timeout, get
 from tenacity import (
+    RetryCallState,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
@@ -17,11 +18,34 @@ from tenacity import (
 from models import MongoHorse, MongoOperation, PreMongoHorse
 
 
+class FetchError(Exception):
+    def __init__(self, message: str, url: str, attempt: int):
+        super().__init__(message)
+        self.url = url
+        self.attempt = attempt
+
+
+def _log_retry(retry_state: RetryCallState) -> None:
+    logger = get_run_logger()
+    attempt = retry_state.attempt_number + 1
+    logger.warning(f"Retry {attempt}/5 for URL: {retry_state.args[0] if retry_state.args else 'unknown'}")
+
+
+def _wrap_fetch_error(retry_state: RetryCallState) -> None:
+    if retry_state.outcome and retry_state.outcome.failed():
+        exc = retry_state.outcome.exception()
+        if exc and not isinstance(exc, FetchError):
+            attempt = retry_state.attempt_number
+            raise FetchError(str(exc), retry_state.args[0] if retry_state.args else "", attempt) from exc
+
+
 @retry(
     stop=stop_after_attempt(5),
     wait=wait_exponential(multiplier=2, min=4, max=60),
     retry=retry_if_exception_type((RequestsConnectionError, Timeout, OSError)),
     reraise=True,
+    before_sleep=_log_retry,
+    after=_wrap_fetch_error,
 )
 def fetch_content(url, params=None, headers=None):
     response = get(url, params=params, headers=headers, timeout=30)
