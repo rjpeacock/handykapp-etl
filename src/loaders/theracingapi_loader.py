@@ -12,6 +12,7 @@ from prefect import flow, get_run_logger
 
 from clients import SpacesClient
 from clients import mongo_client as client
+from helpers.alert_handlers import failure_handler
 from models import TheRacingApiRacecard
 from processors.record_processor import record_processor
 from transformers.theracingapi_transformer import transform_races
@@ -24,7 +25,7 @@ SOURCE = settings["theracingapi"]["spaces_dir"]
 db = client.handykapp
 
 
-@flow
+@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
 def increment_theracingapi_data():
     logger = get_run_logger()
     logger.info("Querying database for most recent race")
@@ -39,7 +40,7 @@ def increment_theracingapi_data():
         load_theracingapi_data()
 
 
-@flow
+@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
 def load_theracingapi_data(*, from_date: Date | None = None):
     logger = get_run_logger()
     logger.info("Starting theracingapi loader")
