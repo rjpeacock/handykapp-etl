@@ -12,6 +12,7 @@ from prefect import flow, task
 from pymongo import ASCENDING as ASC
 
 from clients import mongo_client as client
+from helpers.alert_handlers import failure_handler
 
 # Load settings
 with Path("settings.toml").open("rb") as f:
@@ -68,7 +69,7 @@ def spec_database():
     db.races.create_index("runners.horse")
 
 
-@flow
+@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
 def nuclear_reload():
     drop_database()
     spec_database()
