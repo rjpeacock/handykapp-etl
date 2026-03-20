@@ -18,6 +18,13 @@ from tenacity import (
 from models import MongoHorse, MongoOperation, PreMongoHorse
 
 
+class FetchError(Exception):
+    def __init__(self, message: str, url: str, attempt: int):
+        super().__init__(message)
+        self.url = url
+        self.attempt = attempt
+
+
 def log_retry(retry_state: RetryCallState) -> None:
     logger = get_run_logger()
     attempt = retry_state.attempt_number + 1
@@ -29,10 +36,10 @@ def log_retry(retry_state: RetryCallState) -> None:
 def wrap_fetch_error(retry_state: RetryCallState) -> None:
     if retry_state.outcome and retry_state.outcome.failed():
         exc = retry_state.outcome.exception()
-        if exc:
+        if exc and not isinstance(exc, FetchError):
             url = retry_state.args[0] if retry_state.args else ""
             attempt = retry_state.attempt_number
-            raise OSError(f"Failed fetching {url} after {attempt} attempts: {exc}") from exc
+            raise FetchError(str(exc), url, attempt) from exc
 
 
 @retry(
