@@ -14,6 +14,7 @@ from prefect.blocks.system import Secret
 
 from clients import SpacesClient
 from helpers import fetch_content
+from helpers.alert_handlers import failure_handler
 
 with Path("settings.toml").open("rb") as f:
     settings = tomllib.load(f)
@@ -88,7 +89,7 @@ def get_next_racecard_date():
     return None
 
 
-@flow
+@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
 def update_results_to_do_list():
     filename = f"{DESTINATION}results_to_do_list.json"
     current_status = SpacesClient.read_file(filename)
@@ -115,7 +116,7 @@ def update_results_to_do_list():
     SpacesClient.write_file(content, filename)
 
 
-@flow
+@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
 def rapid_horseracing_extractor():
     # Add another day"s racing to the racecards folder
     date = get_next_racecard_date()

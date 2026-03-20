@@ -7,12 +7,13 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from prefect import flow
 
 from clients import mongo_client as client
+from helpers.alert_handlers import failure_handler
 from transformers.core_transformer import core_transformer
 
 db = client.handykapp
 
 
-@flow
+@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
 def load_racecourses():
     db.racecourses.drop()
     racecourses = core_transformer()
