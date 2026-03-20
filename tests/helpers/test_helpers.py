@@ -15,6 +15,7 @@ PENDULUM_IMPORT = "src.helpers.helpers.pendulum"
 def test_fetch_content_when_successful(mocker):
     resp = mocker.patch("src.helpers.helpers.get")
     resp.return_value.content = "foobar"
+    resp.return_value.status_code = 200
     assert fetch_content("https://example.com") == "foobar"
 
 
