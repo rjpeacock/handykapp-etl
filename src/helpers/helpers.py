@@ -5,13 +5,28 @@ from horsetalk import Horse
 from peak_utility.listish import compact
 from prefect import get_run_logger
 from pydantic_extra_types.pendulum_dt import Date
-from requests import get
+from requests import ConnectionError as RequestsConnectionError
+from requests import Timeout, get
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 from models import MongoHorse, MongoOperation, PreMongoHorse
 
 
+@retry(
+    stop=stop_after_attempt(5),
+    wait=wait_exponential(multiplier=2, min=4, max=60),
+    retry=retry_if_exception_type((RequestsConnectionError, Timeout, OSError)),
+    reraise=True,
+)
 def fetch_content(url, params=None, headers=None):
-    response = get(url, params=params, headers=headers)
+    response = get(url, params=params, headers=headers, timeout=30)
+    if response.status_code >= 500:
+        raise OSError(f"Server error: {response.status_code}")
     response.raise_for_status()
     return response.content
 
