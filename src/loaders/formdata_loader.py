@@ -11,6 +11,7 @@ import tomllib
 from prefect import flow, get_run_logger
 
 from clients import mongo_client as client
+from helpers.alert_handlers import failure_handler
 from processors.formdata_processors import file_processor
 from transformers.formdata_transformer import get_formdatas
 
@@ -22,7 +23,7 @@ SOURCE = settings["formdata"]["spaces_dir"]
 db = client.handykapp
 
 
-@flow
+@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
 def load_formdata():
     logger = get_run_logger()
     logger.info("Starting formdata loader")

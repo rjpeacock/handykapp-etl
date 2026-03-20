@@ -14,6 +14,7 @@ from prefect import flow, get_run_logger, task
 
 from clients import SpacesClient
 from clients import mongo_client as client
+from helpers.alert_handlers import failure_handler
 from models.bha_ratings_record import BHARatingsRecord
 from processors.ratings_processor import ratings_processor
 from transformers.bha_transformer import transform_ratings
@@ -55,7 +56,7 @@ def csv_row_to_dict(header_row, data_row):
     return dict(zip(header_row, data_row))
 
 
-@flow
+@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
 def load_bha_data():
     logger = get_run_logger()
     logger.info("Starting BHA loader")

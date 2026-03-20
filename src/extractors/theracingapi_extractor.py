@@ -12,6 +12,7 @@ from prefect.blocks.system import Secret
 
 from clients import SpacesClient
 from helpers import fetch_content
+from helpers.alert_handlers import failure_handler
 
 with Path("settings.toml").open("rb") as f:
     settings = tomllib.load(f)
@@ -47,12 +48,12 @@ def extract_racecards(day="tomorrow", region_codes=["gb", "ire"]):
     SpacesClient.write_file(content, filename)
 
 
-@flow
+@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
 def theracingapi_racecards_extractor():
     extract_racecards()
 
 
-@flow
+@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
 def theracingapi_countries_extractor():
     extract_countries()
 

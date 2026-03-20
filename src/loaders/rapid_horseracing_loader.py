@@ -10,6 +10,7 @@ from prefect import flow, get_run_logger
 
 from clients import SpacesClient
 from clients import mongo_client as client
+from helpers.alert_handlers import failure_handler
 from models import RapidRecord
 from processors.record_processor import record_processor
 from transformers.rapid_horseracing_transformer import (
@@ -25,7 +26,7 @@ SOURCE = settings["rapid_horseracing"]["spaces_dir"]
 db = client.handykapp
 
 
-@flow
+@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
 def load_rapid_horseracing_entries(
     *, until_date: pendulum.Date = pendulum.now().date()
 ):
@@ -53,7 +54,7 @@ def load_rapid_horseracing_entries(
     r.close()
 
 
-@flow
+@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
 def load_rapid_horseracing_data():
     logger = get_run_logger()
     logger.info("Starting rapid_horseracing loader")
