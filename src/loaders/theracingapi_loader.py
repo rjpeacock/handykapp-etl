@@ -13,7 +13,7 @@ from prefect import flow, get_run_logger
 from clients import SpacesClient
 from clients import mongo_client as client
 from helpers.alert_handlers import failure_handler
-from helpers.run_tracker import get_last_load, update_load
+from helpers.loads_tracker import get_last_load, update_load
 from models import TheRacingApiRacecard
 from processors.record_processor import record_processor
 from transformers.theracingapi_transformer import transform_races
@@ -54,7 +54,7 @@ def load_theracingapi_data(*, from_date: Date | None = None):
         logger.info("Previous load was skipped, loading all data")
     else:
         if last_load.last_processed:
-            from_date = pendulum.parse(last_load.last_processed).date()
+            from_date = pendulum.from_format(last_load.last_processed, "YYYYMMDD").date()
             logger.info(f"Resuming from date: {from_date}")
         else:
             logger.info("No last processed date found, loading all data")
