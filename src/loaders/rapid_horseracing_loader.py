@@ -11,7 +11,7 @@ from prefect import flow, get_run_logger
 from clients import SpacesClient
 from clients import mongo_client as client
 from helpers.alert_handlers import failure_handler
-from helpers.run_tracker import get_last_load, update_load
+from helpers.loads_tracker import get_last_load, update_load
 from models import RapidRecord
 from processors.record_processor import record_processor
 from transformers.rapid_horseracing_transformer import (

@@ -15,7 +15,7 @@ from prefect import flow, get_run_logger, task
 from clients import SpacesClient
 from clients import mongo_client as client
 from helpers.alert_handlers import failure_handler
-from helpers.run_tracker import get_last_load, update_load
+from helpers.loads_tracker import get_last_load, update_load
 from models.bha_ratings_record import BHARatingsRecord
 from processors.ratings_processor import ratings_processor
 from transformers.bha_transformer import transform_ratings
