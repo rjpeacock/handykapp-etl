@@ -67,6 +67,7 @@ def spec_database():
     db.racecourses.create_index("name")
     db.races.create_index([("racecourse", ASC), ("datetime", ASC)], unique=True)
     db.races.create_index("runners.horse")
+    db.loads.create_index("source", unique=True)
 
 
 @flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
