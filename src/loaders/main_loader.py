@@ -9,7 +9,7 @@ from pathlib import Path
 import pendulum
 import tomllib
 from prefect import flow, task
-from pymongo import ASCENDING as ASC
+from pymongo import ASCENDING as ASC, DESCENDING as DESC
 
 from clients import mongo_client as client
 from helpers.alert_handlers import failure_handler
@@ -67,7 +67,9 @@ def spec_database():
     db.racecourses.create_index("name")
     db.races.create_index([("racecourse", ASC), ("datetime", ASC)], unique=True)
     db.races.create_index("runners.horse")
+    db.races.create_index([("datetime", DESC)])
     db.loads.create_index("source", unique=True)
+    db.people.create_index({"references": 1}, wildcard=True)
 
 
 @flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
