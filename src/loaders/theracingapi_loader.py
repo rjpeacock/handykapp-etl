@@ -7,7 +7,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import pendulum
 import tomllib
-from pendulum import Date
+from pendulum import Date, DateTime
 from prefect import flow, get_run_logger
 
 from clients import SpacesClient
@@ -27,7 +27,7 @@ db = client.handykapp
 SOURCE_NAME = "theracingapi"
 
 
-@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
+@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
 def increment_theracingapi_data():
     logger = get_run_logger()
     logger.info("Querying database for most recent race")
@@ -35,14 +35,15 @@ def increment_theracingapi_data():
     logger.info(f"{len(races)} races found")
     if races:
         most_recent = races[-1]["datetime"]
-        logger.info(f"Most recent race on db is: {pendulum.parse(most_recent)}")
-        load_theracingapi_data(from_date=pendulum.parse(most_recent).date())
+        logger.info(f"Most recent race on db is: {pendulum.parse(most_recent)}")  # type: ignore[attr-defined]
+        parsed: DateTime = pendulum.parse(most_recent)  # type: ignore[assignment]
+        load_theracingapi_data(from_date=parsed.date())
     else:
         logger.info("No races currently in db")
         load_theracingapi_data()
 
 
-@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
+@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
 def load_theracingapi_data(*, from_date: Date | None = None):
     logger = get_run_logger()
     logger.info("Starting theracingapi loader")

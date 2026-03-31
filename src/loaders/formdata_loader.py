@@ -23,7 +23,7 @@ SOURCE = settings["formdata"]["spaces_dir"]
 db = client.handykapp
 
 
-@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
+@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
 def load_formdata():
     logger = get_run_logger()
     logger.info("Starting formdata loader")

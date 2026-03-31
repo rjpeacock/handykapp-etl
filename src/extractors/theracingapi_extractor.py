@@ -48,12 +48,12 @@ def extract_racecards(day="tomorrow", region_codes=["gb", "ire"]):
     SpacesClient.write_file(content, filename)
 
 
-@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
+@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
 def theracingapi_racecards_extractor():
     extract_racecards()
 
 
-@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
+@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
 def theracingapi_countries_extractor():
     extract_countries()
 

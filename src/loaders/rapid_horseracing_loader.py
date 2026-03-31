@@ -28,7 +28,7 @@ db = client.handykapp
 SOURCE_NAME = "rapid_entries"
 
 
-@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
+@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
 def load_rapid_horseracing_entries(
     *, until_date: pendulum.Date = pendulum.now().date()
 ):
@@ -80,7 +80,7 @@ def load_rapid_horseracing_entries(
         logger.info("No new records to load")
 
 
-@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
+@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
 def load_rapid_horseracing_data():
     logger = get_run_logger()
     logger.info("Starting rapid_horseracing loader")

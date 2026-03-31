@@ -58,7 +58,7 @@ def csv_row_to_dict(header_row, data_row):
     return dict(zip(header_row, data_row))
 
 
-@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
+@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
 def load_bha_data():
     logger = get_run_logger()
     logger.info("Starting BHA loader")

@@ -12,7 +12,7 @@ from processors.person_processor import person_processor
 from transformers.jockey_ratings_transformer import transform_jockey_ratings
 
 
-@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
+@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
 def load_jockey_ratings():
     logger = get_run_logger()
     logger.info("Starting jockey rating loader")
