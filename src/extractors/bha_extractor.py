@@ -9,8 +9,7 @@ import tomllib
 from prefect import flow, task
 
 from clients import SpacesClient
-from helpers import fetch_content
-from helpers import get_last_occurrence_of
+from helpers import fetch_content, get_last_occurrence_of
 from helpers.alert_handlers import failure_handler
 
 with Path("settings.toml").open("rb") as f:
@@ -37,7 +36,7 @@ def save(file, content):
     SpacesClient.write_file(content, filename)
 
 
-@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
+@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
 def bha_extractor():
     for file in FILES:
         content = fetch(file)

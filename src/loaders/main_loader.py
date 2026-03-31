@@ -9,7 +9,8 @@ from pathlib import Path
 import pendulum
 import tomllib
 from prefect import flow, task
-from pymongo import ASCENDING as ASC, DESCENDING as DESC
+from pymongo import ASCENDING as ASC
+from pymongo import DESCENDING as DESC
 
 from clients import mongo_client as client
 from helpers.alert_handlers import failure_handler
@@ -72,12 +73,12 @@ def spec_database():
     db.people.create_index({"references": 1}, wildcard=True)
 
 
-@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
+@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
 def nuclear_reload():
     drop_database()
     spec_database()
     load_racecourses()
-    switch_date = pendulum.parse(settings["app"]["switch_date"]).date()
+    switch_date = pendulum.parse(settings["app"]["switch_date"]).date()  # type: ignore[attr-defined]
     load_rapid_horseracing_entries(until_date=switch_date)
     load_theracingapi_data()
     load_bha_data()

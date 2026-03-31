@@ -13,7 +13,7 @@ from .rapid_horseracing_loader import load_rapid_horseracing_entries
 from .theracingapi_loader import load_theracingapi_data
 
 
-@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
+@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
 def incremental_load():
     load_rapid_horseracing_entries()
     load_theracingapi_data()

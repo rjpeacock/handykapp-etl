@@ -11,7 +11,7 @@ from processors.betfair_processor import betfair_processor
 from transformers.betfair_transformer import betfair_transformer
 
 
-@flow(on_failure=[lambda flow, state: failure_handler("Flow", flow.name, state)])
+@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
 def load_betfair_horserace_pnl():
     logger = get_run_logger()
     logger.info("Starting betfair loader")
