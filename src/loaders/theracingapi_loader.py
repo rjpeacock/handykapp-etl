@@ -36,7 +36,7 @@ def increment_theracingapi_data():
     if races:
         most_recent = races[-1]["datetime"]
         logger.info(f"Most recent race on db is: {pendulum.parse(most_recent)}")  # type: ignore[attr-defined]
-        parsed: DateTime = pendulum.parse(most_recent)  # type: ignore[assignment]
+        parsed: DateTime = pendulum.parse(most_recent)  # type: ignore[assignment,annotation-unchecked]
         load_theracingapi_data(from_date=parsed.date())
     else:
         logger.info("No races currently in db")
