@@ -135,3 +135,6 @@ deployments/
 # Data
 *.pdf
 *.sqlite3
+
+# Agent files
+temp.md
