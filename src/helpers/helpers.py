@@ -34,7 +34,7 @@ def log_retry(retry_state: RetryCallState) -> None:
 
 
 def wrap_fetch_error(retry_state: RetryCallState) -> None:
-    if retry_state.outcome and retry_state.outcome.failed():
+    if retry_state.outcome and retry_state.outcome.failed:
         exc = retry_state.outcome.exception()
         if exc and not isinstance(exc, FetchError):
             url = retry_state.args[0] if retry_state.args else ""
