@@ -27,13 +27,13 @@ tenacity = "^9.1.4"
 coverage = "^7.13.5"
 mongomock = "^4.3.0"
 mypy = "^1.19.1"
-pytest = "^9.0.2"
+pytest = "^9.0.3"
 pytest-cov = "^7.0.0"
 pytest-mock = "^3.15.1"
 radon = "^6.0.1"
-ruff = "^0.15.6"
-skylos = "^4.0.0"
-types-requests = "^2.32.4.20260107"
+ruff = "^0.15.10"
+skylos = "^4.3.2"
+types-requests = "^2.33.0.20260408"
 
 [tool.mypy]
 ignore_missing_imports = true
