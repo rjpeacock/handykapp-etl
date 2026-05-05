@@ -10,18 +10,24 @@ Prefect deployments run ETL flows in Docker containers for consistency and porta
 To update the Docker image and redeploy your Prefect flows:
 
 1. **Run the update script**
-	- Use the custom script `./docker_update.sh` to build and push the Docker image.
 
-2. **Update the image tag in `prefect.yaml` only if you changed the tag**
-	- Edit the `job_variables.image` field for the relevant deployment if the tag has changed.
+- Use the custom script `./docker_update.sh` to build and push the Docker image.
 
-3. **Deploy flows one at a time**
-	- Use:
-	  ```bash
-	  poetry run prefect deploy
-	  ```
-	- Repeat for each flow you want to redeploy.
+1. **Update the image tag in `prefect.yaml` only if you changed the tag**
+
+- Edit the `job_variables.image` field for the relevant deployment if the tag has changed.
+
+1. **Deploy flows one at a time**
+
+- Use:
+
+   ```bash
+   poetry run prefect deploy
+   ```
+
+  - Repeat for each flow you want to redeploy.
 
 **Notes:**
+
 - Only update the image reference if you change the tag.
 - For troubleshooting, check Prefect agent logs and Docker container logs.
