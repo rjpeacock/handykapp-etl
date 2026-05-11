@@ -38,79 +38,88 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
     try:
         while True:
             person, source = yield
-            name = person.name
-            race_id = person.race_id
-            runner_id = person.runner_id
-            role = person.role
-            ratings = person.ratings or None
+            try:
+                name = person.name
+                race_id = person.race_id
+                runner_id = person.runner_id
+                role = person.role
+                ratings = person.ratings or None
 
-            # Add to pending batch
-            pending_people.add(name)
+                # Add to pending batch
+                pending_people.add(name)
 
-            # When batch gets large enough, preload cache
-            if len(pending_people) >= batch_size:
-                logger.debug(f"Preloading cache with {len(pending_people)} people")
-                person_cache.update(preload_person_cache(pending_people, source))
-                pending_people = set()
+                # When batch gets large enough, preload cache
+                if len(pending_people) >= batch_size:
+                    logger.debug(f"Preloading cache with {len(pending_people)} people")
+                    person_cache.update(preload_person_cache(pending_people, source))
+                    pending_people = set()
 
-            cache_key = (name, source)
-            if cache_key in person_cache:
-                found_id = person_cache[cache_key]
-                logger.debug(f"Cache hit for {name}")
-                if ratings:
-                    db.people.update_one(
-                        {"_id": found_id},
-                        {"$set": {"ratings": ratings}},
-                    )
-            else:
-                found_person = None
-                name_parts = HumanName(name)
-
-                # Only fetch fields we need for matching - much faster
-                possibilities = db.people.find(
-                    {"last": name_parts.last}, {"_id": 1, "first": 1, "title": 1}
-                )
-                for possibility in possibilities:
-                    if name_parts.first == possibility["first"] or (
-                        name_parts.first
-                        and possibility["first"]
-                        and name_parts.first[0] == possibility["first"][0]
-                        and name_parts.title == possibility["title"]
-                    ):
-                        found_person = possibility
-                        break
-
-                if found_person:
-                    found_id = found_person["_id"]
-                    update_data = {f"references.{source}": name} | (
-                        {"ratings": ratings} if ratings else {}
-                    )
-                    db.people.update_one(
-                        {"_id": found_id},
-                        {"$set": update_data},
-                    )
-                    logger.debug(f"{person} updated")
-                    updated_count += 1
-                else:
-                    try:
-                        inserted_person = db.people.insert_one(
-                            name_parts.as_dict()
-                            | {"references": {source: name}}
-                            | ({"ratings": ratings} if ratings else {})
+                cache_key = (name, source)
+                if cache_key in person_cache:
+                    found_id = person_cache[cache_key]
+                    logger.debug(f"Cache hit for {name}")
+                    if ratings:
+                        db.people.update_one(
+                            {"_id": found_id},
+                            {"$set": {"ratings": ratings}},
                         )
-                        found_id = inserted_person.inserted_id
-                        logger.debug(f"{person} added to db")
-                        added_count += 1
-                    except DuplicateKeyError:
-                        logger.warning(f"Duplicate person: {name}")
-                        skipped_count += 1
+                else:
+                    found_person = None
+                    name_parts = HumanName(name)
 
-            # Add person to horse in race
-            if race_id:
-                db.races.update_one(
-                    {"_id": race_id, "runners.horse": runner_id},
-                    {"$set": {f"runners.$.{role}": found_id}},
+                    # Only fetch fields we need for matching - much faster
+                    possibilities = db.people.find(
+                        {"last": name_parts.last}, {"_id": 1, "first": 1, "title": 1}
+                    )
+                    for possibility in possibilities:
+                        if name_parts.first == possibility["first"] or (
+                            name_parts.first
+                            and possibility["first"]
+                            and name_parts.first[0] == possibility["first"][0]
+                            and name_parts.title == possibility["title"]
+                        ):
+                            found_person = possibility
+                            break
+
+                    if found_person:
+                        found_id = found_person["_id"]
+                        update_data = {f"references.{source}": name} | (
+                            {"ratings": ratings} if ratings else {}
+                        )
+                        db.people.update_one(
+                            {"_id": found_id},
+                            {"$set": update_data},
+                        )
+                        logger.debug(f"{person} updated")
+                        updated_count += 1
+                    else:
+                        try:
+                            inserted_person = db.people.insert_one(
+                                name_parts.as_dict()
+                                | {"references": {source: name}}
+                                | ({"ratings": ratings} if ratings else {})
+                            )
+                            found_id = inserted_person.inserted_id
+                            logger.debug(f"{person} added to db")
+                            added_count += 1
+                        except DuplicateKeyError:
+                            logger.warning(f"Duplicate person: {name}")
+                            skipped_count += 1
+                            continue
+
+                # Add person to horse in race
+                if race_id:
+                    db.races.update_one(
+                        {"_id": race_id, "runners.horse": runner_id},
+                        {"$set": {f"runners.$.{role}": found_id}},
+                    )
+            except Exception:
+                logger.exception(
+                    f"Person processor error: name={person.name}, "
+                    f"role={person.role}, source={source}"
                 )
+                skipped_count += 1
+                continue
 
     except GeneratorExit:
         logger.info(
