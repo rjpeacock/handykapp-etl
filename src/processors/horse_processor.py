@@ -61,35 +61,38 @@ def horse_processor() -> Generator[None, PreMongoHorse, None]:
     try:
         while True:
             horse = yield
+            try:
+                db_horse = get_horse(horse)
 
-            db_horse = get_horse(horse)
-
-            if db_horse:
-                bulk_operations.append(
-                    UpdateOne(
-                        {"_id": db_horse["_id"]},
-                        {"$set": make_horse_update_dictionary(horse, db_horse)},
+                if db_horse:
+                    bulk_operations.append(
+                        UpdateOne(
+                            {"_id": db_horse["_id"]},
+                            {"$set": make_horse_update_dictionary(horse, db_horse)},
+                        )
                     )
-                )
-                logger.debug(f"{horse.name} updated")
-                updated_count += 1
-            else:
-                try:
-                    db.horses.insert_one(make_horse_insert_dictionary(horse))
-                    logger.debug(f"{horse.name} added to db")
-                    added_count += 1
-                except DuplicateKeyError:
-                    logger.warning(f"Duplicate horse: {horse})")
-                    skipped_count += 1
-                except ValueError as e:
-                    logger.warning(e)
-                    skipped_count += 1
+                    logger.debug(f"{horse.name} updated")
+                    updated_count += 1
+                else:
+                    try:
+                        db.horses.insert_one(make_horse_insert_dictionary(horse))
+                        logger.debug(f"{horse.name} added to db")
+                        added_count += 1
+                    except DuplicateKeyError:
+                        logger.warning(f"Duplicate horse: {horse})")
+                        skipped_count += 1
+                    except ValueError as e:
+                        logger.warning(e)
+                        skipped_count += 1
 
-            # Process bulk operations when threshold reached
-            if bulk_operations and len(bulk_operations) >= bulk_threshold:
-                db.horses.bulk_write(bulk_operations)
-                logger.debug(f"Processed {len(bulk_operations)} bulk horse operations")
-                bulk_operations = []
+                # Process bulk operations when threshold reached
+                if bulk_operations and len(bulk_operations) >= bulk_threshold:
+                    db.horses.bulk_write(bulk_operations)
+                    logger.debug(f"Processed {len(bulk_operations)} bulk horse operations")
+                    bulk_operations = []
+            except Exception:
+                logger.exception(f"Horse processor error: horse={horse.name}")
+                skipped_count += 1
 
     except GeneratorExit:
         # Process any remaining bulk operations
