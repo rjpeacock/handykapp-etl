@@ -70,7 +70,7 @@ def spec_database():
     db.races.create_index("runners.horse")
     db.races.create_index([("datetime", DESC)])
     db.loads.create_index("source", unique=True)
-    db.people.create_index({"references": 1}, wildcard=True)
+    db.people.create_index({"references.$**": 1})
 
 
 @flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
