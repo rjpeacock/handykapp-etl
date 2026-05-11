@@ -91,53 +91,61 @@ def runner_processor() -> Generator[None, tuple[PreMongoRunner, PyObjectId, str]
         while True:
             horse, race_id, source = yield
 
-            db_horse = get_horse(horse)
+            try:
+                db_horse = get_horse(horse)
 
-            if db_horse:
-                horse_updates.append(
-                    UpdateOne(
-                        {"_id": db_horse["_id"]},
-                        {"$set": make_horse_update_dictionary(horse, db_horse)},
+                if db_horse:
+                    horse_updates.append(
+                        UpdateOne(
+                            {"_id": db_horse["_id"]},
+                            {"$set": make_horse_update_dictionary(horse, db_horse)},
+                        )
                     )
+                    horse_id = db_horse["_id"]
+                    logger.debug(f"{horse.name} updated")
+                    updated_count += 1
+                else:
+                    try:
+                        horse_id = db.horses.insert_one(
+                            make_horse_insert_dictionary(horse)
+                        ).inserted_id
+                        logger.debug(f"{horse.name} added to db")
+                        added_count += 1
+                    except DuplicateKeyError:
+                        logger.warning(f"Duplicate horse: {horse}) in race {race_id}")
+                        skipped_count += 1
+                        continue
+                    except ValueError as e:
+                        logger.warning(e)
+                        skipped_count += 1
+                        continue
+
+                # Process horse updates when threshold reached
+                if horse_updates and len(horse_updates) >= horse_update_threshold:
+                    db.horses.bulk_write(horse_updates)
+                    logger.debug(f"Processed {len(horse_updates)} bulk horse operations")
+                    horse_updates = []
+
+                if not race_id:
+                    continue
+
+                if race_id not in race_updates:
+                    race_updates[race_id] = []
+
+                race_updates[race_id].append(make_runner_dict(horse, horse_id))
+                pending_people.extend(collect_people(horse, race_id, horse_id, source))
+
+                if len(race_updates) >= race_update_threshold:
+                    flush_races_and_people(race_updates, pending_people, p, logger)
+                    race_updates = {}
+                    pending_people = []
+            except Exception:
+                logger.exception(
+                    f"Runner processor error: horse={horse.name}, "
+                    f"race_id={race_id}, source={source}"
                 )
-                horse_id = db_horse["_id"]
-                logger.debug(f"{horse.name} updated")
-                updated_count += 1
-            else:
-                try:
-                    horse_id = db.horses.insert_one(
-                        make_horse_insert_dictionary(horse)
-                    ).inserted_id
-                    logger.debug(f"{horse.name} added to db")
-                    added_count += 1
-                except DuplicateKeyError:
-                    logger.warning(f"Duplicate horse: {horse}) in race {race_id}")
-                    skipped_count += 1
-                    continue
-                except ValueError as e:
-                    logger.warning(e)
-                    skipped_count += 1
-                    continue
-
-            # Process horse updates when threshold reached
-            if horse_updates and len(horse_updates) >= horse_update_threshold:
-                db.horses.bulk_write(horse_updates)
-                logger.debug(f"Processed {len(horse_updates)} bulk horse operations")
-                horse_updates = []
-
-            if not race_id:
+                skipped_count += 1
                 continue
-
-            if race_id not in race_updates:
-                race_updates[race_id] = []
-
-            race_updates[race_id].append(make_runner_dict(horse, horse_id))
-            pending_people.extend(collect_people(horse, race_id, horse_id, source))
-
-            if len(race_updates) >= race_update_threshold:
-                flush_races_and_people(race_updates, pending_people, p, logger)
-                race_updates = {}
-                pending_people = []
 
     except GeneratorExit:
         if horse_updates:
