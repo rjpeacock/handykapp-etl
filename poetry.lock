@@ -4267,14 +4267,14 @@ files = [
 
 [[package]]
 name = "skylos"
-version = "4.13.1"
+version = "4.14.0"
 description = "Open-source AI code security and static analysis for Python, TypeScript/JavaScript, Go, Java, PHP, Rust, and Dart. Finds dead code, secrets, vulnerabilities, and diff-aware regressions."
 optional = false
 python-versions = ">=3.10"
 groups = ["dev"]
 files = [
-    {file = "skylos-4.13.1-py3-none-any.whl", hash = "sha256:9ea8818f1ad341aa2e1eb892fe217b529e9bfebb8f31ed8a104c0b444999f215"},
-    {file = "skylos-4.13.1.tar.gz", hash = "sha256:b7373e4bc8b1d90f3c26c8485acb1da92df012b7a1c4b77f179218e2b48d54a6"},
+    {file = "skylos-4.14.0-py3-none-any.whl", hash = "sha256:676c812f8e00e5fd4fd9449cf362f1b37da0c3ee4a18057371c15cbcb9e4d3e9"},
+    {file = "skylos-4.14.0.tar.gz", hash = "sha256:dc50cc19a9326f65345b80ff6d22ac9694075155ebad648a83b359e4ab46b6d8"},
 ]
 
 [package.dependencies]
