@@ -60,13 +60,23 @@ def flush_races_and_people(
     pending_people: list,
     person_gen: Generator[None, tuple[PreMongoPerson, str], None],
     logger: Any,
-):
+) -> Generator[None, tuple[PreMongoPerson, str], None]:
     for rid, runners in race_updates.items():
         db.races.update_one({"_id": rid}, {"$push": {"runners": {"$each": runners}}})
     logger.debug(f"Updated {len(race_updates)} races with runners")
 
     for person_data in pending_people:
-        person_gen.send(person_data)
+        try:
+            person_gen.send(person_data)
+        except StopIteration:
+            logger.error("person_processor generator died, reinitializing")
+            person_gen = person_processor()
+            next(person_gen)
+            person_gen.send(person_data)
+        except Exception:
+            logger.exception(f"Error processing person: {person_data}")
+
+    return person_gen
 
 
 def runner_processor() -> Generator[None, tuple[PreMongoRunner, PyObjectId, str], None]:
@@ -136,7 +146,7 @@ def runner_processor() -> Generator[None, tuple[PreMongoRunner, PyObjectId, str]
                 pending_people.extend(collect_people(horse, race_id, horse_id, source))
 
                 if len(race_updates) >= race_update_threshold:
-                    flush_races_and_people(race_updates, pending_people, p, logger)
+                    p = flush_races_and_people(race_updates, pending_people, p, logger)
                     race_updates = {}
                     pending_people = []
             except Exception:
