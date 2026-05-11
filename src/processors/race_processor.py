@@ -55,61 +55,66 @@ def race_processor() -> Generator[None, tuple[PreMongoRace, str], None]:
             )
             log_description = f"{datetime_str} {race.title} at {race.course} ({race.surface}) from {source}"
 
-            if racecourse_id := get_racecourse_id(
-                race.to_course_details(), race.datetime, source
-            ):
-                found_race = db.races.find_one(
-                    {
-                        "racecourse": racecourse_id,
-                        "datetime": race.datetime,
-                    }
-                )
-
-                # TODO: Check race matches data
-                if found_race:
-                    race_id = found_race["_id"]
-                    db.races.update_one(
-                        {"_id": race_id},
+            try:
+                if racecourse_id := get_racecourse_id(
+                    race.to_course_details(), race.datetime, source
+                ):
+                    found_race = db.races.find_one(
                         {
-                            "$set": compact(
-                                {
-                                    "rapid_id": race.rapid_id,
-                                    "going_description": race.going_description,
-                                }
-                            )
-                        },
+                            "racecourse": racecourse_id,
+                            "datetime": race.datetime,
+                        }
                     )
-                    logger.debug(f"{datetime_str} at {race.course} updated")
-                    updated_count += 1
-                else:
-                    try:
-                        race_id = db.races.insert_one(
-                            make_update_dictionary(race, racecourse_id)
-                        ).inserted_id
-                        logger.debug(f"{datetime_str} at {race.course} added to db")
-                        added_count += 1
-                    except DuplicateKeyError:
-                        logger.warning(
-                            f"Duplicate race for {datetime_str} at {race.course}"
+
+                    # TODO: Check race matches data
+                    if found_race:
+                        race_id = found_race["_id"]
+                        db.races.update_one(
+                            {"_id": race_id},
+                            {
+                                "$set": compact(
+                                    {
+                                        "rapid_id": race.rapid_id,
+                                        "going_description": race.going_description,
+                                    }
+                                )
+                            },
                         )
-                        skipped_count += 1
+                        logger.debug(f"{datetime_str} at {race.course} updated")
+                        updated_count += 1
+                    else:
+                        try:
+                            race_id = db.races.insert_one(
+                                make_update_dictionary(race, racecourse_id)
+                            ).inserted_id
+                            logger.debug(f"{datetime_str} at {race.course} added to db")
+                            added_count += 1
+                        except DuplicateKeyError:
+                            logger.warning(
+                                f"Duplicate race for {datetime_str} at {race.course}"
+                            )
+                            skipped_count += 1
 
-                try:
-                    for horse in race.runners:
-                        for parent in (horse.sire, horse.damsire, horse.dam):
-                            if parent:
-                                h.send(parent)
+                    try:
+                        for horse in race.runners:
+                            for parent in (horse.sire, horse.damsire, horse.dam):
+                                if parent:
+                                    h.send(parent)
 
-                        if race_id:
-                            r.send((horse, race_id, source))
-                except Exception as e:
+                            if race_id:
+                                r.send((horse, race_id, source))
+                    except Exception as e:
+                        logger.error(
+                            f"Error processing {log_description}: {type(e).__name__}: {e}",
+                            exc_info=True,
+                        )
+                else:
                     logger.error(
-                        f"Error processing {log_description}: {type(e).__name__}: {e}",
-                        exc_info=True,
+                        f"Unable to add {log_description}: No matching racecourse found"
                     )
-            else:
-                logger.error(
-                    f"Unable to add {log_description}: No matching racecourse found"
+            except Exception:
+                logger.exception(
+                    f"Race processor error: {log_description}"
                 )
 
     except GeneratorExit:
