@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 from functools import cache, wraps
 from typing import Literal
@@ -55,6 +56,7 @@ def update_horse_name_if_needed(horse: PreMongoHorse, result: dict) -> None:
 
 @cache_if_found(maxsize=50000)
 def get_horse(horse: PreMongoHorse) -> dict | None:
+    time.sleep(0.005)
     search = db.horses.find_one
     base = {"name": horse.name, "country": horse.country, "year": horse.year}
 
@@ -66,20 +68,22 @@ def get_horse(horse: PreMongoHorse) -> dict | None:
     if result:
         return result
 
-    result = search(
-        base
-        | {
-            "name": {
-                "$regex": f"^{create_apostrophe_regex(horse.name)}$",
-                "$options": "i",
+    if "'" in horse.name:
+        result = search(
+            base
+            | {
+                "name": {
+                    "$regex": f"^{create_apostrophe_regex(horse.name)}$",
+                    "$options": "i",
+                }
             }
-        }
-    )
+        )
 
-    if result:
-        update_horse_name_if_needed(horse, result)
+        if result:
+            update_horse_name_if_needed(horse, result)
+            return result
 
-    return result
+    return None
 
 
 type NewmarketRacecourse = Literal["Newmarket July", "Newmarket Rowley"]
