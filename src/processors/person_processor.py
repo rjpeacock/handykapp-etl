@@ -37,7 +37,7 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
     added_count = 0
     skipped_count = 0
     person_updates = []
-    person_update_threshold = 100
+    person_update_threshold = 50
 
     try:
         while True:
@@ -68,6 +68,7 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
                             {"$set": {"ratings": ratings}},
                         )
                 else:
+                    time.sleep(0.02)
                     found_person = None
                     name_parts = HumanName(name)
 
@@ -121,7 +122,7 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
                     )
                     if len(person_updates) >= person_update_threshold:
                         db.races.bulk_write(person_updates, ordered=False)
-                        time.sleep(0.05)
+                        time.sleep(0.5)
                         person_updates = []
             except Exception:
                 logger.exception(
