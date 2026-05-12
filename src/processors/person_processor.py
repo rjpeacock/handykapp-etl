@@ -1,7 +1,9 @@
+import time
 from collections.abc import Generator
 
 from nameparser import HumanName  # type: ignore
 from prefect import get_run_logger
+from pymongo import UpdateOne
 from pymongo.errors import DuplicateKeyError
 
 from clients import mongo_client as client
@@ -34,6 +36,8 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
     updated_count = 0
     added_count = 0
     skipped_count = 0
+    person_updates = []
+    person_update_threshold = 100
 
     try:
         while True:
@@ -109,10 +113,16 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
 
                 # Add person to horse in race
                 if race_id:
-                    db.races.update_one(
-                        {"_id": race_id, "runners.horse": runner_id},
-                        {"$set": {f"runners.$.{role}": found_id}},
+                    person_updates.append(
+                        UpdateOne(
+                            {"_id": race_id, "runners.horse": runner_id},
+                            {"$set": {f"runners.$.{role}": found_id}},
+                        )
                     )
+                    if len(person_updates) >= person_update_threshold:
+                        db.races.bulk_write(person_updates, ordered=False)
+                        time.sleep(0.05)
+                        person_updates = []
             except Exception:
                 logger.exception(
                     f"Person processor error: name={person.name}, "
@@ -122,6 +132,8 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
                 continue
 
     except GeneratorExit:
+        if person_updates:
+            db.races.bulk_write(person_updates, ordered=False)
         logger.info(
             f"Finished processing people. Updated {updated_count}, added {added_count}, skipped {skipped_count}"
         )
