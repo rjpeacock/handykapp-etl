@@ -8,7 +8,7 @@ from pymongo import MongoClient
 
 from models import PreMongoHorse, PreMongoRaceCourseDetails
 
-mongo_client = MongoClient("mongodb://localhost:27017/")  # type: ignore
+mongo_client = MongoClient("mongodb://localhost:27017/", timeoutMS=120000)  # type: ignore
 
 
 db = mongo_client.handykapp
