@@ -133,8 +133,11 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
                             _flush_person_updates(person_updates)
                             person_updates = []
                         except Exception:
-                            person_updates = []
-                            raise
+                            logger.warning(
+                                f"Failed to flush {len(person_updates)} person updates, "
+                                f"re-queuing {person.name}"
+                            )
+                            person_updates = [person_updates[-1]] if person_updates else []
             except Exception:
                 logger.exception(
                     f"Person processor error: name={person.name}, "
@@ -145,7 +148,7 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
 
     except GeneratorExit:
         if person_updates:
-            db.races.bulk_write(person_updates, ordered=False)
+            _flush_person_updates(person_updates)
         logger.info(
             f"Finished processing people. Updated {updated_count}, added {added_count}, skipped {skipped_count}"
         )
