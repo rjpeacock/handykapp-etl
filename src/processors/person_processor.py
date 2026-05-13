@@ -1,10 +1,10 @@
-import time
 from collections.abc import Generator
 
 from nameparser import HumanName  # type: ignore
 from prefect import get_run_logger
 from pymongo import UpdateOne
 from pymongo.errors import DuplicateKeyError
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from clients import mongo_client as client
 from models import PreMongoPerson, PyObjectId
@@ -27,17 +27,26 @@ def preload_person_cache(names, source):
     return cache
 
 
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=4, max=60),
+    reraise=True,
+)
+def _flush_person_updates(updates):
+    db.races.bulk_write(updates, ordered=False)
+
+
 def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
     logger = get_run_logger()
     logger.info("Starting person processor")
     person_cache: dict[tuple[str, str], PyObjectId] = {}
     pending_people = set()
-    batch_size = 50
+    batch_size = 20
     updated_count = 0
     added_count = 0
     skipped_count = 0
     person_updates = []
-    person_update_threshold = 50
+    person_update_threshold = 20
 
     try:
         while True:
@@ -68,7 +77,6 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
                             {"$set": {"ratings": ratings}},
                         )
                 else:
-                    time.sleep(0.02)
                     found_person = None
                     name_parts = HumanName(name)
 
@@ -121,9 +129,12 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
                         )
                     )
                     if len(person_updates) >= person_update_threshold:
-                        db.races.bulk_write(person_updates, ordered=False)
-                        time.sleep(0.5)
-                        person_updates = []
+                        try:
+                            _flush_person_updates(person_updates)
+                            person_updates = []
+                        except Exception:
+                            person_updates = []
+                            raise
             except Exception:
                 logger.exception(
                     f"Person processor error: name={person.name}, "
