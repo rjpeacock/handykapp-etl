@@ -1,4 +1,3 @@
-import time
 from datetime import datetime
 from functools import cache, wraps
 from typing import Literal
@@ -25,13 +24,10 @@ def cache_if_found(maxsize=None):
             if key in cache:
                 return cache[key]
             result = func(*args, **kwargs)
-            if result is not None:  # Only cache when we find something
-                cache[key] = result
-                # Limit cache size
-                if maxsize and len(cache) > maxsize:
-                    # Remove oldest 1000 entries
-                    for _ in range(1000):
-                        cache.pop(next(iter(cache)))
+            cache[key] = result
+            if maxsize and len(cache) > maxsize:
+                for _ in range(1000):
+                    cache.pop(next(iter(cache)))
             return result
 
         return wrapper
@@ -54,9 +50,8 @@ def update_horse_name_if_needed(horse: PreMongoHorse, result: dict) -> None:
         result["name"] = horse.name
 
 
-@cache_if_found(maxsize=10000)
+@cache_if_found(maxsize=50000)
 def get_horse(horse: PreMongoHorse) -> dict | None:
-    time.sleep(0.05)
     search = db.horses.find_one
     base = {"name": horse.name, "country": horse.country, "year": horse.year}
 
