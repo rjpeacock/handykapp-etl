@@ -121,7 +121,7 @@ def test_horse_processor_updates_existing_horse(mock_db, mocker):
     mocker.patch("processors.horse_processor.get_horse", return_value={"_id": "horse_1", "name": "Existing Horse"})
     
     bulk_write_calls = []
-    def mock_bulk_write(operations):
+    def mock_bulk_write(operations, **kwargs):
         bulk_write_calls.extend(operations)
     
     mock_db.horses.bulk_write = mock_bulk_write
