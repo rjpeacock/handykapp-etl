@@ -24,10 +24,11 @@ def cache_if_found(maxsize=None):
             if key in cache:
                 return cache[key]
             result = func(*args, **kwargs)
-            cache[key] = result
-            if maxsize and len(cache) > maxsize:
-                for _ in range(1000):
-                    cache.pop(next(iter(cache)))
+            if result is not None:
+                cache[key] = result
+                if maxsize and len(cache) > maxsize:
+                    for _ in range(1000):
+                        cache.pop(next(iter(cache)))
             return result
 
         return wrapper
