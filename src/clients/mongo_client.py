@@ -54,7 +54,7 @@ def update_horse_name_if_needed(horse: PreMongoHorse, result: dict) -> None:
         result["name"] = horse.name
 
 
-@cache_if_found(maxsize=50000)
+@cache_if_found(maxsize=10000)
 def get_horse(horse: PreMongoHorse) -> dict | None:
     time.sleep(0.05)
     search = db.horses.find_one
