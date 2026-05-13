@@ -56,7 +56,7 @@ def horse_processor() -> Generator[None, PreMongoHorse, None]:
     skipped_count = 0
 
     bulk_operations = []
-    bulk_threshold = 500
+    bulk_threshold = 100
 
     try:
         while True:
