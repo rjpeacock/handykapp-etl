@@ -55,7 +55,7 @@ def make_horse_insert_dictionary(horse: PreMongoHorse):
     reraise=True,
 )
 def _flush_bulk_operations(operations):
-    db.horses.bulk_write(operations)
+    db.horses.bulk_write(operations, ordered=False)
 
 
 def horse_processor() -> Generator[None, PreMongoHorse, None]:
