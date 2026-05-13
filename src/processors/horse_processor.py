@@ -4,6 +4,7 @@ from peak_utility.listish import compact
 from prefect import get_run_logger
 from pymongo import UpdateOne
 from pymongo.errors import DuplicateKeyError
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from clients.mongo_client import get_horse, mongo_client
 from helpers import get_operations, make_operations_update
@@ -48,6 +49,15 @@ def make_horse_insert_dictionary(horse: PreMongoHorse):
     )
 
 
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=4, max=60),
+    reraise=True,
+)
+def _flush_bulk_operations(operations):
+    db.horses.bulk_write(operations)
+
+
 def horse_processor() -> Generator[None, PreMongoHorse, None]:
     logger = get_run_logger()
     logger.info("Starting runner processor")
@@ -87,7 +97,7 @@ def horse_processor() -> Generator[None, PreMongoHorse, None]:
 
                 # Process bulk operations when threshold reached
                 if bulk_operations and len(bulk_operations) >= bulk_threshold:
-                    db.horses.bulk_write(bulk_operations)
+                    _flush_bulk_operations(bulk_operations)
                     logger.debug(f"Processed {len(bulk_operations)} bulk horse operations")
                     bulk_operations = []
             except Exception:
@@ -97,7 +107,7 @@ def horse_processor() -> Generator[None, PreMongoHorse, None]:
     except GeneratorExit:
         # Process any remaining bulk operations
         if bulk_operations:
-            db.horses.bulk_write(bulk_operations)
+            _flush_bulk_operations(bulk_operations)
             logger.debug(f"Processed {len(bulk_operations)} remaining bulk operations")
 
         logger.info(
