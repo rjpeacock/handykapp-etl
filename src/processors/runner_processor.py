@@ -13,6 +13,7 @@ from processors.horse_processor import (
     make_horse_update_dictionary,
 )
 from processors.person_processor import person_processor
+from processors.utils import log_memory_usage
 
 db = mongo_client.handykapp
 
@@ -134,6 +135,7 @@ def runner_processor() -> Generator[None, tuple[PreMongoRunner, PyObjectId, str]
                 if horse_updates and len(horse_updates) >= horse_update_threshold:
                     db.horses.bulk_write(horse_updates)
                     logger.debug(f"Processed {len(horse_updates)} bulk horse operations")
+                    log_memory_usage()
                     horse_updates = []
 
                 if not race_id:
@@ -165,6 +167,7 @@ def runner_processor() -> Generator[None, tuple[PreMongoRunner, PyObjectId, str]
         if race_updates:
             flush_races_and_people(race_updates, pending_people, p, logger)
 
+        log_memory_usage()
         logger.info(
             f"Finished processing runners. Updated {updated_count}, added {added_count}, skipped {skipped_count}"
         )

@@ -9,6 +9,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 from clients.mongo_client import get_horse, mongo_client
 from helpers import get_operations, make_operations_update
 from models import MongoHorse, PreMongoHorse
+from processors.utils import log_memory_usage
 
 db = mongo_client.handykapp
 
@@ -99,6 +100,7 @@ def horse_processor() -> Generator[None, PreMongoHorse, None]:
                 if bulk_operations and len(bulk_operations) >= bulk_threshold:
                     _flush_bulk_operations(bulk_operations)
                     logger.debug(f"Processed {len(bulk_operations)} bulk horse operations")
+                    log_memory_usage()
                     bulk_operations = []
             except Exception:
                 logger.exception(f"Horse processor error: horse={horse.name}")
@@ -110,6 +112,7 @@ def horse_processor() -> Generator[None, PreMongoHorse, None]:
             _flush_bulk_operations(bulk_operations)
             logger.debug(f"Processed {len(bulk_operations)} remaining bulk operations")
 
+        log_memory_usage()
         logger.info(
             f"Finished processing horses. Updated {updated_count}, added {added_count}, skipped {skipped_count}"
         )
