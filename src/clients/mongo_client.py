@@ -64,6 +64,9 @@ def get_horse(horse: PreMongoHorse) -> dict | None:
     if result:
         return result
 
+    # Always apply apostrophe-flexible regex: formdata may omit apostrophes
+    # (e.g. "SOPHIAS" for "SOPHIA'S") while API sources include them. Without this,
+    # horses with names differing only by apostrophe silently fail to match races.
     result = search(
         base
         | {
