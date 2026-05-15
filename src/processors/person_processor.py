@@ -1,5 +1,6 @@
 from collections.abc import Generator
 
+from bson import ObjectId
 from nameparser import HumanName  # type: ignore
 from prefect import get_run_logger
 from pymongo import UpdateOne
@@ -124,7 +125,7 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
                 if race_id:
                     person_updates.append(
                         UpdateOne(
-                            {"_id": race_id, "runners.horse": runner_id},
+                            {"_id": ObjectId(race_id), "runners.horse": ObjectId(runner_id)},
                             {"$set": {f"runners.$.{role}": found_id}},
                         )
                     )
