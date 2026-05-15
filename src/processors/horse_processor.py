@@ -14,16 +14,18 @@ from processors.utils import log_memory_usage
 db = mongo_client.handykapp
 
 
+def _get_parent_id(parent: PreMongoHorse | None):
+    if parent and (result := get_horse(parent)):
+        return result["_id"]
+    return None
+
+
 def make_horse_update_dictionary(horse: PreMongoHorse, db_horse: MongoHorse):
     return compact(
         {
             "colour": horse.colour,
-            "sire": sire["_id"]
-            if (horse.sire and (sire := get_horse(horse.sire)))
-            else None,
-            "dam": dam["_id"]
-            if (horse.dam and (dam := get_horse(horse.dam)))
-            else None,
+            "sire": _get_parent_id(horse.sire),
+            "dam": _get_parent_id(horse.dam),
             "operations": make_operations_update(horse, db_horse),
             "ratings": horse.ratings,
         }
@@ -38,12 +40,8 @@ def make_horse_insert_dictionary(horse: PreMongoHorse):
             "year": horse.year,
             "country": horse.country,
             "colour": horse.colour,
-            "sire": sire["_id"]
-            if (horse.sire and (sire := get_horse(horse.sire)))
-            else None,
-            "dam": dam["_id"]
-            if (horse.dam and (dam := get_horse(horse.dam)))
-            else None,
+            "sire": _get_parent_id(horse.sire),
+            "dam": _get_parent_id(horse.dam),
             "operations": get_operations(horse),
             "ratings": horse.ratings,
         }
