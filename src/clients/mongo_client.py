@@ -64,20 +64,19 @@ def get_horse(horse: PreMongoHorse) -> dict | None:
     if result:
         return result
 
-    if "'" in horse.name:
-        result = search(
-            base
-            | {
-                "name": {
-                    "$regex": f"^{create_apostrophe_regex(horse.name)}$",
-                    "$options": "i",
-                }
+    result = search(
+        base
+        | {
+            "name": {
+                "$regex": f"^{create_apostrophe_regex(horse.name)}$",
+                "$options": "i",
             }
-        )
+        }
+    )
 
-        if result:
-            update_horse_name_if_needed(horse, result)
-            return result
+    if result:
+        update_horse_name_if_needed(horse, result)
+        return result
 
     return None
 
