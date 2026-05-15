@@ -56,16 +56,17 @@ def collect_people(
     ]
 
 
-def flush_races_and_people(
-    race_updates: dict,
-    pending_people: list,
-    person_gen: Generator[None, tuple[PreMongoPerson, str], None],
-    logger: Any,
-) -> Generator[None, tuple[PreMongoPerson, str], None]:
+def flush_races(race_updates: dict, logger: Any):
     for rid, runners in race_updates.items():
         db.races.update_one({"_id": rid}, {"$push": {"runners": {"$each": runners}}})
     logger.debug(f"Updated {len(race_updates)} races with runners")
 
+
+def flush_people(
+    pending_people: list,
+    person_gen: Generator[None, tuple[PreMongoPerson, str], None],
+    logger: Any,
+) -> Generator[None, tuple[PreMongoPerson, str], None]:
     for person_data in pending_people:
         try:
             person_gen.send(person_data)
@@ -148,7 +149,8 @@ def runner_processor() -> Generator[None, tuple[PreMongoRunner, PyObjectId, str]
                 pending_people.extend(collect_people(horse, race_id, horse_id, source))
 
                 if len(race_updates) >= race_update_threshold:
-                    p = flush_races_and_people(race_updates, pending_people, p, logger)
+                    flush_races(race_updates, logger)
+                    p = flush_people(pending_people, p, logger)
                     race_updates = {}
                     pending_people = []
             except Exception:
@@ -165,7 +167,9 @@ def runner_processor() -> Generator[None, tuple[PreMongoRunner, PyObjectId, str]
             logger.debug(f"Processed {len(horse_updates)} remaining bulk operations")
 
         if race_updates:
-            flush_races_and_people(race_updates, pending_people, p, logger)
+            flush_races(race_updates, logger)
+        if pending_people:
+            p = flush_people(pending_people, p, logger)
 
         log_memory_usage()
         logger.info(
