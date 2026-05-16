@@ -7,6 +7,7 @@ from clients import mongo_client as client
 from clients.mongo_client import rr_code_to_course_dict
 from models import FormdataRun, PreMongoPerson
 from processors.person_processor import person_processor
+from transformers.formdata_transformer import transform_run
 
 db = client.handykapp
 
@@ -64,15 +65,13 @@ def result_line_processor() -> Generator[None, tuple[dict, FormdataRun], None]:
                     else FORMDATA_AW_GOINGS.get(run.going, "Standard")
                 )
                 going_assessment = str(Going(going_value))
+                update_data = {f"runners.$.{k}": v for k, v in transform_run(run).items()}
                 db.races.update_one(
                     {"_id": race_id, "runners.horse": horse["_id"]},
                     {
                         "$set": {
                             "going_assessment": going_assessment,
-                            "runners.$.finishing_position": run.position,
-                            "runners.$.beaten_distance": run.beaten_distance,
-                            "runners.$.ratings.rr_time": run.time_rating,
-                            "runners.$.ratings.rr_form": run.form_rating,
+                            **update_data,
                         }
                     },
                 )

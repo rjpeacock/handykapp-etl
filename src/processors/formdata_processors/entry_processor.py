@@ -4,8 +4,6 @@ from prefect import get_run_logger
 from clients import mongo_client as client
 from clients.mongo_client import get_horse
 from models import PreMongoHorse
-
-# from models.formdata_horse import FormdataHorse
 from .result_line_processor import result_line_processor
 
 db = client.handykapp

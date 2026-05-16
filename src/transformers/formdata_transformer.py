@@ -21,6 +21,7 @@ from horsetalk import (
     RacingCode,
     TurfGoingDescription,
 )  # type: ignore
+from peak_utility.listish import compact  # type: ignore
 from peak_utility.names.corrections import (
     eirify,
     scotify,  # type: ignore
@@ -34,6 +35,7 @@ from models import (
     FormdataRecord,
     FormdataRun,
     FormdataRunner,
+    MongoRunner,
     PreMongoRace,
     PreMongoRunner,
 )
@@ -394,9 +396,9 @@ def is_race_date(string: str) -> bool:
     return bool(re.match(date_regex, string))
 
 
-def transform_horse(runner: FormdataRunner) -> PreMongoRunner:
+def transform_runner(runner: FormdataRunner) -> PreMongoRunner:
     data = petl.fromdicts([runner.model_dump()])
-    transformed_horse = (
+    transformed_runner = (
         petl.convert(
             data,
             {
@@ -405,11 +407,7 @@ def transform_horse(runner: FormdataRunner) -> PreMongoRunner:
                 "jockey": lambda x: adjust_rr_name(x),
             },
         )
-        .rename(
-            {
-                "weight": "lbs_carried",
-            }
-        )
+        .rename({"weight": "lbs_carried"})
         .addfield("finishing_position", lambda rec: rec["position"].split("p")[0])
         .addfield(
             "official_position",
@@ -420,7 +418,36 @@ def transform_horse(runner: FormdataRunner) -> PreMongoRunner:
         .cutout("position", "time_rating", "form_rating")
         .dicts()[0]
     )
-    return PreMongoRunner(**transformed_horse)
+    return PreMongoRunner(**transformed_runner)
+
+
+def transform_run(run: FormdataRun) -> dict:
+    data = petl.fromdicts([run.model_dump()])
+    return (
+        petl.convert(
+            data,
+            {
+                "weight": lambda x: RaceWeight(x).lb,
+                "beaten_distance": lambda x: float(Horselength(x)) if x else None,
+                "jockey": lambda x: adjust_rr_name(x),
+            },
+        )
+        .rename({"weight": "lbs_carried"})
+        .addfield("finishing_position", lambda rec: rec["position"].split("p")[0])
+        .addfield(
+            "official_position",
+            lambda rec: rec["position"].split("p")[1]
+            if "p" in rec["position"]
+            else rec["finishing_position"],
+        )
+        .addfield(
+            "ratings",
+            lambda rec: compact({"rr_time": rec["time_rating"], "rr_form": rec["form_rating"]})
+            or None,
+        )
+        .cutout("position", "time_rating", "form_rating", "jockey")
+        .dicts()[0]
+    )
 
 
 def transform_races(record: FormdataRecord) -> list[PreMongoRace]:
@@ -507,7 +534,7 @@ def transform_races(record: FormdataRecord) -> list[PreMongoRace]:
             index=0,
         )
         .convert("prize", lambda x: str(int(x) * 1000))
-        .convert("runners", lambda x: [transform_horse(FormdataRunner(**h)) for h in x])
+        .convert("runners", lambda x: [transform_runner(FormdataRunner(**h)) for h in x])
         .cutout("number_of_runners", "race_type", "division")
         .dicts()
     )
