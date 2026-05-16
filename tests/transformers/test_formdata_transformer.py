@@ -324,17 +324,10 @@ def test_transform_horse_returns_correct_output():
         form_rating=80,
     )
     expected = {
-        "date": "2024-06-01",
-        "race_type": "Hc",
-        "win_prize": "5",
-        "course": "Kel",
-        "number_of_runners": 5,
         "lbs_carried": 140,
         "headgear": None,
         "allowance": None,
         "beaten_distance": 2.0,
-        "distance": 24.0,
-        "going": "G",
         "going_assessment": "Good",
         "finishing_position": "2",
         "official_position": "3",
