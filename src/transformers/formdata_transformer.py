@@ -13,6 +13,7 @@ import tomllib
 from horsetalk import (
     AgeRestriction,
     AWGoingDescription,
+    Going,
     Horselength,
     JumpCategory,
     RaceDistance,
@@ -421,6 +422,15 @@ def transform_runner(runner: FormdataRunner) -> PreMongoRunner:
     return PreMongoRunner(**transformed_runner)
 
 
+FORMDATA_AW_GOINGS = {
+    "s": "Slow",
+    "d": "Standard to Slow",
+    "g": "Standard",
+    "m": "Standard to Fast",
+    "f": "Fast",
+}
+
+
 def transform_run(run: FormdataRun) -> dict:
     data = petl.fromdicts([run.model_dump()])
     return (
@@ -444,6 +454,16 @@ def transform_run(run: FormdataRun) -> dict:
             "ratings",
             lambda rec: compact({"rr_time": rec["time_rating"], "rr_form": rec["form_rating"]})
             or None,
+        )
+        .addfield(
+            "going_assessment",
+            lambda rec: str(
+                Going(
+                    rec["going"]
+                    if rec["going"] != rec["going"].lower()
+                    else FORMDATA_AW_GOINGS.get(rec["going"], "Standard")
+                )
+            ),
         )
         .cutout("position", "time_rating", "form_rating", "jockey")
         .dicts()[0]
