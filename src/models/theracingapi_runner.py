@@ -18,7 +18,7 @@ class TheRacingApiRunner(BaseModel):
     number: str = Field(..., pattern=r"^(NR|R?\d+)$", description="Saddlecloth number")
     draw: int | Literal[""] = Field(..., description="Draw position")
     headgear: str | None = Field(None, description="Headgear worn by the horse")
-    lbs: int = Field(..., description="Weight carried by the horse in pounds")
+    lbs: int | Literal[""] = Field(..., description="Weight carried by the horse in pounds")
     ofr: int | Literal["-"] = Field(..., description="Official rating of the horse")
     jockey: str = Field(..., description="Name of the jockey")
     last_run: str = Field(..., description="Days since the horse's last run")
