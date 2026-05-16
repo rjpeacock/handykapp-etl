@@ -26,7 +26,6 @@ from models import (
     TheRacingApiRacecard,
     TheRacingApiRunner,
 )
-from transformers.parsers import parse_code, parse_obstacle
 
 
 def build_datetime(date_str: str, time_str: str) -> str:
@@ -133,9 +132,21 @@ def transform_races(record: TheRacingApiRacecard) -> list[PreMongoRace]:
             lambda rec: build_datetime(rec["date"], rec["off_time"]),
             index=1,
         )
-        .addfield("obstacle", lambda rec: parse_obstacle(rec["title"]), index=5)
         .addfield(
-            "code", lambda rec: parse_code(rec["obstacle"], rec["title"]), index=6
+            "obstacle",
+            # TODO: Improve in horsetalk
+            lambda rec: {
+                "Hurdle": "Hurdle",
+                "Chase": "Steeplechase",
+            }.get(rec["race_type"]),
+            index=5,
+        )
+        .addfield(
+            "code",
+            lambda rec: "National Hunt"
+            if rec["race_type"] in ("NH Flat", "Hurdle", "Chase")
+            else "Flat",
+            index=6,
         )
         .convert(
             {
