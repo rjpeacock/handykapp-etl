@@ -1,7 +1,7 @@
 import pendulum
 from horsetalk import RacingCode
 
-from models import FormdataRecord, FormdataRunner, PreMongoRace, PreMongoRunner
+from models import FormdataRecord, FormdataRun, PreMongoRace, PreMongoRunner
 from transformers.formdata_transformer import (
     adjust_rr_name,
     extract_dist_going,
@@ -14,8 +14,8 @@ from transformers.formdata_transformer import (
     get_formdatas,
     is_horse,
     is_race_date,
-    transform_horse,
     transform_races,
+    transform_run,
 )
 
 FORMDATA_FETCH = "transformers.formdata_transformer.SpacesClient.get_files"
@@ -322,31 +322,39 @@ def test_is_race_date_false_with_non_date():
 
 
 def test_transform_horse_returns_correct_output():
-    data = FormdataRunner(
-        **{
-            "name": "AADDEEY",
-            "country": "GB",
-            "year": 2018,
-            "weight": "10-0",
-            "jockey": "D Tudhope",
-            "position": "2p3",
-            "beaten_distance": "2.0",
-            "time_rating": 80,
-            "form_rating": 80,
-        }
-    )
-    expected = PreMongoRunner(
-        name="AADDEEY",
-        country="GB",
-        year=2018,
+    data = FormdataRun(
+        date="2024-06-01",
+        race_type="Hc",
+        win_prize="5",
+        course="Kel",
+        number_of_runners=5,
+        weight="10-0",
         jockey="D Tudhope",
-        lbs_carried=140,
-        finishing_position="2",
-        official_position="3",
+        position="2p3",
         beaten_distance=2.0,
+        time_rating=80,
+        distance=24.0,
+        going="G",
+        form_rating=80,
     )
+    expected = {
+        "date": "2024-06-01",
+        "race_type": "Hc",
+        "win_prize": "5",
+        "course": "Kel",
+        "number_of_runners": 5,
+        "lbs_carried": 140,
+        "headgear": None,
+        "allowance": None,
+        "beaten_distance": 2.0,
+        "distance": 24.0,
+        "going": "G",
+        "finishing_position": "2",
+        "official_position": "3",
+        "ratings": {"rr_time": 80, "rr_form": 80},
+    }
 
-    actual = transform_horse(data)
+    actual = transform_run(data)
     assert actual == expected
 
 
