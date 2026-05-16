@@ -1,6 +1,5 @@
 from collections.abc import Generator
 
-from horsetalk import Going
 from prefect import get_run_logger
 
 from clients import mongo_client as client
@@ -10,14 +9,6 @@ from processors.person_processor import person_processor
 from transformers.formdata_transformer import transform_run
 
 db = client.handykapp
-
-FORMDATA_AW_GOINGS = {
-    "s": "Slow",
-    "d": "Standard to Slow",
-    "g": "Standard",
-    "m": "Standard to Fast",
-    "f": "Fast",
-}
 
 
 def result_line_processor() -> Generator[None, tuple[dict, FormdataRun], None]:
@@ -59,32 +50,27 @@ def result_line_processor() -> Generator[None, tuple[dict, FormdataRun], None]:
             if found_race:
                 race_id = found_race["_id"]
 
-                going_value = (
-                    run.going
-                    if surface == "Turf"
-                    else FORMDATA_AW_GOINGS.get(run.going, "Standard")
-                )
-                going_assessment = str(Going(going_value))
-                update_data = {f"runners.$.{k}": v for k, v in transform_run(run).items()}
+                result = transform_run(run)
+                going_assessment = result.pop("going_assessment")
+                update = {"$set": {**{f"runners.$.{k}": v for k, v in result.items()}}}
+                if "going_assessment" not in found_race:
+                    update["$set"]["going_assessment"] = going_assessment
                 db.races.update_one(
                     {"_id": race_id, "runners.horse": horse["_id"]},
-                    {
-                        "$set": {
-                            "going_assessment": going_assessment,
-                            **update_data,
-                        }
-                    },
+                    update,
                 )
 
-                pp.send((
-                    PreMongoPerson(
-                        name=run.jockey,
-                        role="jockey",
-                        race_id=race_id,
-                        runner_id=horse["_id"],
-                    ),
-                    "rr",
-                ))
+                pp.send(
+                    (
+                        PreMongoPerson(
+                            name=run.jockey,
+                            role="jockey",
+                            race_id=race_id,
+                            runner_id=horse["_id"],
+                        ),
+                        "rr",
+                    )
+                )
                 logger.debug(
                     f"Added result for {horse['_id']} in race at {run.course} on {run.date}"
                 )

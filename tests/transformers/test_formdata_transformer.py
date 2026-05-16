@@ -349,6 +349,7 @@ def test_transform_horse_returns_correct_output():
         "beaten_distance": 2.0,
         "distance": 24.0,
         "going": "G",
+        "going_assessment": "Good",
         "finishing_position": "2",
         "official_position": "3",
         "ratings": {"rr_time": 80, "rr_form": 80},
