@@ -11,16 +11,10 @@ import pendulum
 import petl  # type: ignore
 import tomllib
 from horsetalk import (
-    AgeRestriction,
-    AWGoingDescription,
     Going,
     Horselength,
-    JumpCategory,
-    RaceDistance,
-    RaceGrade,
     RaceWeight,
     RacingCode,
-    TurfGoingDescription,
 )  # type: ignore
 from peak_utility.listish import compact  # type: ignore
 from peak_utility.names.corrections import (
@@ -33,12 +27,7 @@ from prefect import get_run_logger
 from clients import SpacesClient
 from models import (
     FormdataHorse,
-    FormdataRecord,
     FormdataRun,
-    FormdataRunner,
-    MongoRunner,
-    PreMongoRace,
-    PreMongoRunner,
 )
 
 with Path("settings.toml").open("rb") as f:
@@ -223,7 +212,6 @@ DIST_GOING_PATTERN = re.compile(
 )
 
 
-@cache
 def extract_dist_going(string: str) -> tuple[float, str] | None:
     match = re.match(DIST_GOING_PATTERN, string)
     if match:
@@ -244,10 +232,6 @@ GRADE_PATTERN = re.compile(
 )
 
 
-@cache
-def extract_grade(race_type: str) -> str | None:
-    match = re.search(GRADE_PATTERN, race_type)
-    return match.group(0) if match else None
 
 
 MIDDLE_DETAILS_PATTERN = re.compile(
@@ -263,7 +247,6 @@ MIDDLE_DETAILS_PATTERN = re.compile(
 )
 
 
-@cache
 def extract_middle_details(details: str) -> dict | None:
     match = re.match(MIDDLE_DETAILS_PATTERN, details)
     if match:
@@ -288,7 +271,6 @@ PRIZE_PATTERN = re.compile(
 )
 
 
-@cache
 def extract_prize(string: str) -> tuple[str, str] | None:
     match = re.match(PRIZE_PATTERN, string)
     if match:
@@ -311,7 +293,6 @@ RATING_PATTERN = re.compile(
 )
 
 
-@cache
 def extract_rating(string: str) -> int | None:
     match = re.match(RATING_PATTERN, string)
     if match:
@@ -331,7 +312,6 @@ WEIGHT_PATTERN = re.compile(
 )
 
 
-@cache
 def extract_weight(string: str) -> tuple[str, str] | None:
     match = re.match(WEIGHT_PATTERN, string)
     if match:
@@ -397,31 +377,6 @@ def is_race_date(string: str) -> bool:
     return bool(re.match(date_regex, string))
 
 
-def transform_runner(runner: FormdataRunner) -> PreMongoRunner:
-    data = petl.fromdicts([runner.model_dump()])
-    transformed_runner = (
-        petl.convert(
-            data,
-            {
-                "weight": lambda x: RaceWeight(x).lb,
-                "beaten_distance": lambda x: float(Horselength(x)) if x else None,
-                "jockey": lambda x: adjust_rr_name(x),
-            },
-        )
-        .rename({"weight": "lbs_carried"})
-        .addfield("finishing_position", lambda rec: rec["position"].split("p")[0])
-        .addfield(
-            "official_position",
-            lambda rec: rec["position"].split("p")[1]
-            if "p" in rec["position"]
-            else rec["finishing_position"],
-        )
-        .cutout("position", "time_rating", "form_rating")
-        .dicts()[0]
-    )
-    return PreMongoRunner(**transformed_runner)
-
-
 FORMDATA_AW_GOINGS = {
     "s": "Slow",
     "d": "Standard to Slow",
@@ -470,96 +425,4 @@ def transform_run(run: FormdataRun) -> dict:
     )
 
 
-def transform_races(record: FormdataRecord) -> list[PreMongoRace]:
-    data = petl.fromdicts([record.model_dump()])
-    transformed_races = (
-        petl.rename(
-            data,
-            {
-                "date": "datetime",
-                "distance": "distance_description",
-                "going": "going_description",
-                "win_prize": "prize",
-            },
-        )
-        .addfield(
-            "surface",
-            lambda rec: "AW"
-            if rec["going_description"] == rec["going_description"].lower()
-            else "Turf",
-        )
-        .convert(
-            {
-                "datetime": lambda x, rec: pendulum.from_format(x, "YYYY-MM-DD")
-                + pendulum.duration(
-                    minutes=int(rec["distance_description"]) + (rec["division"] or 0)
-                )
-                + pendulum.duration(seconds=int(rec["number_of_runners"])),
-                "going_description": lambda x, rec: (
-                    AWGoingDescription[x].name.title()  # type: ignore
-                    if rec["surface"] == "AW"
-                    else TurfGoingDescription[x].name.title()  # type: ignore
-                ),
-            },
-            pass_row=True,
-        )
-        .convert(
-            {
-                "distance_description": lambda x: str(RaceDistance(furlong=float(x))),
-            }
-        )
-        .addfield(
-            "is_handicap",
-            lambda rec: "H" in rec["race_type"],
-            index=4,
-        )
-        .addfield(
-            "obstacle",
-            lambda rec: JumpCategory["h"].name.title()  # type: ignore
-            if "h" in rec["race_type"]
-            else JumpCategory["c"].name.title()  # type: ignore
-            if "c" in rec["race_type"]
-            else None,
-        )
-        .addfield(
-            "code",
-            lambda rec: RacingCode["NH"].name.title()  # type: ignore
-            if rec["obstacle"] or "b" in rec["race_type"]
-            else RacingCode["Flat"].name.title(),  # type: ignore
-        )
-        .addfield(
-            "age_restriction",
-            lambda rec: str(AgeRestriction("2yo"))
-            if "2" in rec["race_type"] and "G2" not in rec["race_type"]
-            else str(AgeRestriction("3yo"))
-            if "3" in rec["race_type"] and "G3" not in rec["race_type"]
-            else str(AgeRestriction("4yo"))
-            if "4" in rec["race_type"]
-            else None,
-        )
-        .addfield(
-            "race_grade",
-            lambda rec: str(RaceGrade(extract_grade(rec["race_type"]))) or None,
-            index=5,
-        )
-        .addfield(
-            "title",
-            lambda rec: (
-                f"£{int(rec['prize']) * 1000} "
-                f"{rec['distance_description']} "
-                f"{'Handicap ' if rec['is_handicap'] else ''}"
-                f"{rec['obstacle'] or ''}"
-                f"{f' (Div {"A" if rec["division"] == 0 else "B"})' if rec['division'] else ''}"
-            ),
-            index=0,
-        )
-        .convert("prize", lambda x: str(int(x) * 1000))
-        .convert("runners", lambda x: [transform_runner(FormdataRunner(**h)) for h in x])
-        .cutout("number_of_runners", "race_type", "division")
-        .dicts()
-    )
-    return [PreMongoRace(**race) for race in transformed_races]
 
-
-if __name__ == "__main__":
-    print("Cannot run formdata_transformer.py as a script.")

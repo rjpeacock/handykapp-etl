@@ -1,11 +1,10 @@
 import pendulum
 from horsetalk import RacingCode
 
-from models import FormdataRecord, FormdataRun, PreMongoRace, PreMongoRunner
+from models import FormdataRun
 from transformers.formdata_transformer import (
     adjust_rr_name,
     extract_dist_going,
-    extract_grade,
     extract_middle_details,
     extract_prize,
     extract_rating,
@@ -14,7 +13,6 @@ from transformers.formdata_transformer import (
     get_formdatas,
     is_horse,
     is_race_date,
-    transform_races,
     transform_run,
 )
 
@@ -76,18 +74,6 @@ def test_extract_dist_going_for_aw_going():
 
 def test_extract_dist_going_for_decimal_dist():
     assert extract_dist_going("9.1G") == (float("9.1"), "G")
-
-
-def test_extract_grade_with_prefix():
-    assert extract_grade("2CG1") == "G1"
-
-
-def test_extract_grade_with_suffix():
-    assert extract_grade("G1h") == "G1"
-
-
-def test_extract_grade_where_no_grade():
-    assert extract_grade("2C") is None
 
 
 def test_extract_middle_details_when_jockey_and_single_digit_position():
@@ -356,60 +342,4 @@ def test_transform_horse_returns_correct_output():
     }
 
     actual = transform_run(data)
-    assert actual == expected
-
-
-def test_transform_races_returns_correct_output():
-    data = FormdataRecord(
-        **{
-            "date": "2024-06-01",
-            "race_type": "Hc",
-            "win_prize": "5",
-            "course": "Kel",
-            "number_of_runners": "5",
-            "distance": "24",
-            "going": "G",
-            "runners": [
-                {
-                    "name": "AADDEEY",
-                    "country": "GB",
-                    "year": 2018,
-                    "weight": "10-0",
-                    "jockey": "D Tudhope",
-                    "position": "3",
-                    "beaten_distance": "2.0",
-                    "time_rating": 80,
-                    "form_rating": 80,
-                }
-            ],
-        }
-    )
-    expected = PreMongoRace(
-        course="Kel",
-        obstacle="Steeplechase",
-        surface="Turf",
-        code="National_Hunt",
-        datetime=pendulum.datetime(2024, 6, 1, 0, 24, 5),
-        title="£5000 3m Handicap Steeplechase",
-        is_handicap=True,
-        age_restriction=None,
-        race_grade=None,
-        distance_description="3m",
-        prize="5000",
-        going_description="Good",
-        runners=[
-            PreMongoRunner(
-                name="AADDEEY",
-                country="GB",
-                year=2018,
-                jockey="D Tudhope",
-                lbs_carried=140,
-                finishing_position="3",
-                official_position="3",
-                beaten_distance=2.0,
-            )
-        ],
-    )
-
-    actual = transform_races(data)[0]
     assert actual == expected
