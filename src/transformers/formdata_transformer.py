@@ -420,7 +420,7 @@ def transform_run(run: FormdataRun) -> dict:
                 )
             ),
         )
-        .cutout("position", "time_rating", "form_rating", "jockey")
+        .cutout("position", "time_rating", "form_rating", "jockey", "date", "race_type", "win_prize", "course", "number_of_runners", "distance", "going")
         .dicts()[0]
     )
 
