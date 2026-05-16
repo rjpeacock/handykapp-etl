@@ -84,7 +84,7 @@ def transform_horse(
                 "damsire": lambda x: horse_name_to_pre_mongo_horse(x, sex="M"),
                 "saddlecloth": int,
                 "draw": int,
-                "lbs_carried": int,
+                "lbs_carried": lambda x: int(x) if x != "" else None,
                 "headgear": lambda x: Headgear[x].name.title() if x else None,  # type: ignore
                 "official_rating": int,
                 "jockey": lambda x: x.split("(")[0].strip(),
