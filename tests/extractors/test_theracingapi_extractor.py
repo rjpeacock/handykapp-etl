@@ -6,6 +6,7 @@ from src.extractors.theracingapi_extractor import (
     extract_countries,
     extract_racecards,
     get_headers,
+    identify_missing_dates,
 )
 
 
@@ -56,3 +57,84 @@ def test_extract_racecards_for_tomorrow_as_default(mocker):
     expected_destination = "dir/racecards/theracingapi_racecards_20200102.json"
     assert write_file.call_count == 1
     assert mocker.call([{}], expected_destination) == write_file.call_args
+
+
+def test_identify_missing_dates(mocker):
+    mocker.patch("src.extractors.theracingapi_extractor.get_run_logger")
+    get_files = mocker.patch(
+        "src.extractors.theracingapi_extractor.SpacesClient.get_files"
+    )
+    write_file = mocker.patch(
+        "src.extractors.theracingapi_extractor.SpacesClient.write_file"
+    )
+    mocker.patch("src.extractors.theracingapi_extractor.DESTINATION", "dir/")
+
+    get_files.return_value = [
+        "dir/racecards/theracingapi_racecards_20260101.json",
+        "dir/racecards/theracingapi_racecards_20260102.json",
+        "dir/racecards/theracingapi_racecards_20260104.json",
+    ]
+
+    identify_missing_dates.fn()
+
+    write_file.assert_called_once_with(
+        "20260103\n",
+        "dir/missing_racecard_dates.txt",
+    )
+
+
+def test_identify_missing_dates_no_gaps(mocker):
+    mocker.patch("src.extractors.theracingapi_extractor.get_run_logger")
+    get_files = mocker.patch(
+        "src.extractors.theracingapi_extractor.SpacesClient.get_files"
+    )
+    delete_file = mocker.patch(
+        "src.extractors.theracingapi_extractor.SpacesClient.delete_file"
+    )
+    mocker.patch("src.extractors.theracingapi_extractor.DESTINATION", "dir/")
+
+    get_files.return_value = [
+        "dir/racecards/theracingapi_racecards_20260101.json",
+        "dir/racecards/theracingapi_racecards_20260102.json",
+        "dir/racecards/theracingapi_racecards_20260103.json",
+    ]
+
+    identify_missing_dates.fn()
+
+    delete_file.assert_called_once_with("dir/missing_racecard_dates.txt")
+
+
+def test_identify_missing_dates_single_file(mocker):
+    mocker.patch("src.extractors.theracingapi_extractor.get_run_logger")
+    get_files = mocker.patch(
+        "src.extractors.theracingapi_extractor.SpacesClient.get_files"
+    )
+    delete_file = mocker.patch(
+        "src.extractors.theracingapi_extractor.SpacesClient.delete_file"
+    )
+    mocker.patch("src.extractors.theracingapi_extractor.DESTINATION", "dir/")
+
+    get_files.return_value = [
+        "dir/racecards/theracingapi_racecards_20260101.json",
+    ]
+
+    identify_missing_dates.fn()
+
+    delete_file.assert_called_once_with("dir/missing_racecard_dates.txt")
+
+
+def test_identify_missing_dates_empty_dir(mocker):
+    mocker.patch("src.extractors.theracingapi_extractor.get_run_logger")
+    get_files = mocker.patch(
+        "src.extractors.theracingapi_extractor.SpacesClient.get_files"
+    )
+    write_file = mocker.patch(
+        "src.extractors.theracingapi_extractor.SpacesClient.write_file"
+    )
+    mocker.patch("src.extractors.theracingapi_extractor.DESTINATION", "dir/")
+
+    get_files.return_value = []
+
+    identify_missing_dates.fn()
+
+    write_file.assert_not_called()

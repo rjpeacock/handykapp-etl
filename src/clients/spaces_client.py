@@ -81,6 +81,11 @@ class SpacesClient:
         )
 
     @classmethod
+    def delete_file(cls, filename):
+        client = cls.get()
+        client.delete_object(Bucket=cls.BUCKET_NAME, Key=filename)
+
+    @classmethod
     def edit_json_file(cls, filename, edit_func):
         data = cls.read_file(filename)
         modified_data = edit_func(data)
