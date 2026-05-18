@@ -27,6 +27,9 @@ RACECARDS_DESTINATION = f"{DESTINATION}racecards/"
 RESULTS_DESTINATION = f"{DESTINATION}results/"
 LIMITS = settings["rapid_horseracing"]["limits"]
 
+THERACINGAPI_SOURCE = settings["theracingapi"]["spaces_dir"]
+MISSING_DATES_FILE = f"{THERACINGAPI_SOURCE}missing_racecard_dates.txt"
+
 
 def get_file_date(filename):
     return filename.split(".")[0][-8:]
@@ -87,6 +90,55 @@ def get_next_racecard_date():
         test_date += pendulum.duration(days=1)
 
     return None
+
+
+@task(tags=["Rapid"])
+def read_missing_racecard_dates(n):
+    try:
+        content = SpacesClient.stream_file(MISSING_DATES_FILE).decode("utf-8")
+        all_dates = [d.strip() for d in content.strip().split("\n") if d.strip()]
+    except Exception:
+        return [], []
+
+    return all_dates[:n], all_dates[n:]
+
+
+@task(tags=["Rapid"])
+def write_missing_racecard_dates(dates):
+    if dates:
+        SpacesClient.write_file("\n".join(dates) + "\n", MISSING_DATES_FILE)
+    else:
+        SpacesClient.delete_file(MISSING_DATES_FILE)
+
+
+@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
+def replace_missing_theracingapi_racecards():
+    logger = get_run_logger()
+    logger.info("Starting missing racecard fetcher")
+
+    batch_size = LIMITS["day"] - 1
+    to_process, remaining = read_missing_racecard_dates(batch_size)
+
+    if not to_process:
+        logger.info("No missing dates to process")
+        return
+
+    logger.info(f"Fetching racecards for {len(to_process)} dates")
+    failures = []
+
+    for date_yyyymmdd in to_process:
+        date = f"{date_yyyymmdd[:4]}-{date_yyyymmdd[4:6]}-{date_yyyymmdd[6:8]}"
+        try:
+            extract_racecards(date)
+            logger.info(f"Fetched racecards for {date}")
+        except Exception as e:
+            logger.error(f"Failed to fetch racecards for {date}: {e}")
+            failures.append(date_yyyymmdd)
+
+        sleep(6)
+
+    write_missing_racecard_dates(failures + remaining)
+    logger.info(f"Done. {len(to_process) - len(failures)} succeeded, {len(failures)} failed")
 
 
 @flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])

@@ -2,6 +2,7 @@ import pendulum
 
 from src.extractors.rapid_horseracing_extractor import (
     LIMITS,
+    MISSING_DATES_FILE,
     RACECARDS_DESTINATION,
     RESULTS_DESTINATION,
     SOURCE,
@@ -11,6 +12,8 @@ from src.extractors.rapid_horseracing_extractor import (
     get_headers,
     get_next_racecard_date,
     get_unfetched_race_ids,
+    read_missing_racecard_dates,
+    write_missing_racecard_dates,
 )
 
 
@@ -138,3 +141,66 @@ def test_get_next_racecard_date_when_no_dates_left(mocker):
     mocker.patch("pendulum.now").return_value = pendulum.parse("2020-01-03")
 
     assert None is get_next_racecard_date.fn()
+
+
+def test_read_missing_racecard_dates_returns_split_dates(mocker):
+    mocker.patch(
+        "src.extractors.rapid_horseracing_extractor.SpacesClient.stream_file"
+    ).return_value = b"20230323\n20230512\n20230602\n20230603\n"
+
+    to_process, remaining = read_missing_racecard_dates.fn(2)
+
+    assert to_process == ["20230323", "20230512"]
+    assert remaining == ["20230602", "20230603"]
+
+
+def test_read_missing_racecard_dates_handles_empty_file(mocker):
+    mocker.patch(
+        "src.extractors.rapid_horseracing_extractor.SpacesClient.stream_file"
+    ).return_value = b""
+
+    to_process, remaining = read_missing_racecard_dates.fn(5)
+
+    assert to_process == []
+    assert remaining == []
+
+
+def test_read_missing_racecard_dates_returns_empty_when_file_missing(mocker):
+    mocker.patch(
+        "src.extractors.rapid_horseracing_extractor.SpacesClient.stream_file"
+    ).side_effect = Exception("File not found")
+
+    to_process, remaining = read_missing_racecard_dates.fn(5)
+
+    assert to_process == []
+    assert remaining == []
+
+
+def test_write_missing_racecard_dates_writes_when_dates_exist(mocker):
+    write_file = mocker.patch(
+        "src.extractors.rapid_horseracing_extractor.SpacesClient.write_file"
+    )
+    delete_file = mocker.patch(
+        "src.extractors.rapid_horseracing_extractor.SpacesClient.delete_file"
+    )
+
+    write_missing_racecard_dates.fn(["20230323", "20230512"])
+
+    write_file.assert_called_once_with(
+        "20230323\n20230512\n", MISSING_DATES_FILE
+    )
+    delete_file.assert_not_called()
+
+
+def test_write_missing_racecard_dates_deletes_when_empty(mocker):
+    write_file = mocker.patch(
+        "src.extractors.rapid_horseracing_extractor.SpacesClient.write_file"
+    )
+    delete_file = mocker.patch(
+        "src.extractors.rapid_horseracing_extractor.SpacesClient.delete_file"
+    )
+
+    write_missing_racecard_dates.fn([])
+
+    delete_file.assert_called_once_with(MISSING_DATES_FILE)
+    write_file.assert_not_called()
