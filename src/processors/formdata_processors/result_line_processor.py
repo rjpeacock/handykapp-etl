@@ -1,5 +1,6 @@
 from collections.abc import Generator
 
+from horsetalk import RaceDistance
 from prefect import get_run_logger
 
 from clients import mongo_client as client
@@ -9,6 +10,69 @@ from processors.person_processor import person_processor
 from transformers.formdata_transformer import transform_run
 
 db = client.handykapp
+
+
+def _apply_result_to_race(found_race, horse, run, pp, logger):
+    race_id = found_race["_id"]
+    result = transform_run(run)
+    going_assessment = result.pop("going_assessment")
+    update = {"$set": {**{f"runners.$.{k}": v for k, v in result.items()}}}
+    if "going_assessment" not in found_race:
+        update["$set"]["going_assessment"] = going_assessment
+    db.races.update_one(
+        {"_id": race_id, "runners.horse": horse["_id"]},
+        update,
+    )
+    pp.send(
+        (
+            PreMongoPerson(
+                name=run.jockey,
+                role="jockey",
+                race_id=race_id,
+                runner_id=horse["_id"],
+            ),
+            "rr",
+        )
+    )
+    logger.debug(
+        f"Added result for {horse['_id']} in race at {run.course} on {run.date}"
+    )
+
+
+def _find_candidate_race(racecourse_id, run):
+    target_code = "Flat" if run.race_type == "FLAT" else "National Hunt"
+    target_distance = RaceDistance(f"{run.distance}f")
+
+    possible = list(
+        db.races.find(
+            {
+                "racecourse": racecourse_id,
+                "$expr": {
+                    "$eq": [
+                        {
+                            "$dateToString": {
+                                "format": "%Y-%m-%d",
+                                "date": "$datetime",
+                            }
+                        },
+                        run.date,
+                    ]
+                },
+            }
+        )
+    )
+
+    matching = []
+    for race in possible:
+        if race.get("code") != target_code:
+            continue
+        try:
+            if RaceDistance(race.get("distance_description", "")) == target_distance:
+                matching.append(race)
+        except Exception:
+            continue
+
+    return matching
 
 
 def result_line_processor() -> Generator[None, tuple[dict, FormdataRun], None]:
@@ -47,37 +111,24 @@ def result_line_processor() -> Generator[None, tuple[dict, FormdataRun], None]:
                 }
             )
 
-            if found_race:
-                race_id = found_race["_id"]
-
-                result = transform_run(run)
-                going_assessment = result.pop("going_assessment")
-                update = {"$set": {**{f"runners.$.{k}": v for k, v in result.items()}}}
-                if "going_assessment" not in found_race:
-                    update["$set"]["going_assessment"] = going_assessment
-                db.races.update_one(
-                    {"_id": race_id, "runners.horse": horse["_id"]},
-                    update,
-                )
-
-                pp.send(
-                    (
-                        PreMongoPerson(
-                            name=run.jockey,
-                            role="jockey",
-                            race_id=race_id,
-                            runner_id=horse["_id"],
-                        ),
-                        "rr",
+            if not found_race:
+                candidates = _find_candidate_race(racecourse_id, run)
+                if len(candidates) != 1:
+                    logger.warning(
+                        f"No race found for {horse['_id']} at "
+                        f"{run.course} on {run.date}"
                     )
+                    continue
+                race = candidates[0]
+                db.races.update_one(
+                    {"_id": race["_id"]},
+                    {"$addToSet": {"runners": {"horse": horse["_id"]}}},
                 )
-                logger.debug(
-                    f"Added result for {horse['_id']} in race at {run.course} on {run.date}"
+                found_race = db.races.find_one(
+                    {"_id": race["_id"], "runners.horse": horse["_id"]},
                 )
-            else:
-                logger.warning(
-                    f"No race found for {horse['_id']} at {run.course} on {run.date}"
-                )
+
+            _apply_result_to_race(found_race, horse, run, pp, logger)
     except GeneratorExit:
         pp.close()
         logger.info("Finished processing results.")
