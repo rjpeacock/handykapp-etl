@@ -8,9 +8,8 @@ import pendulum
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import tomllib
-from prefect import flow, task
+from prefect import flow, get_run_logger, task
 from prefect.blocks.system import Secret
-from prefect import get_run_logger
 
 from clients import SpacesClient
 from helpers import fetch_content
