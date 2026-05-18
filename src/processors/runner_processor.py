@@ -70,7 +70,7 @@ def flush_people(
     for person_data in pending_people:
         try:
             person_gen.send(person_data)
-        except StopIteration:
+        except StopIteration:  # noqa: PERF203
             logger.error("person_processor generator died, reinitializing")
             person_gen = person_processor()
             next(person_gen)
