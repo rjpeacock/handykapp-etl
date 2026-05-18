@@ -9,7 +9,7 @@ from time import sleep
 
 import pendulum
 import tomllib
-from prefect import flow, task
+from prefect import flow, get_run_logger, task
 from prefect.blocks.system import Secret
 
 from clients import SpacesClient
@@ -111,7 +111,9 @@ def write_missing_racecard_dates(dates):
         SpacesClient.delete_file(MISSING_DATES_FILE)
 
 
-@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
+@flow(
+    on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)]
+)
 def replace_missing_theracingapi_racecards():
     logger = get_run_logger()
     logger.info("Starting missing racecard fetcher")
@@ -138,10 +140,14 @@ def replace_missing_theracingapi_racecards():
         sleep(6)
 
     write_missing_racecard_dates(failures + remaining)
-    logger.info(f"Done. {len(to_process) - len(failures)} succeeded, {len(failures)} failed")
+    logger.info(
+        f"Done. {len(to_process) - len(failures)} succeeded, {len(failures)} failed"
+    )
 
 
-@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
+@flow(
+    on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)]
+)
 def update_results_to_do_list():
     filename = f"{DESTINATION}results_to_do_list.json"
     current_status = SpacesClient.read_file(filename)
@@ -168,7 +174,9 @@ def update_results_to_do_list():
     SpacesClient.write_file(content, filename)
 
 
-@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
+@flow(
+    on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)]
+)
 def rapid_horseracing_extractor():
     # Add another day"s racing to the racecards folder
     date = get_next_racecard_date()

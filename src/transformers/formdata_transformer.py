@@ -1,6 +1,5 @@
 # To allow running as a script, need path
 import sys
-from functools import cache
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
