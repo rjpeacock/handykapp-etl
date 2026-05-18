@@ -7,9 +7,10 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from prefect import flow, get_run_logger
 
 from extractors.rapid_horseracing_extractor import (
-    rapid_horseracing_extractor,  # type: ignore
+    replace_missing_theracingapi_racecards,  # type: ignore  # TEMP: replaces rapid_horseracing_extractor
 )
 from extractors.theracingapi_extractor import (
+    identify_missing_dates,  # type: ignore
     theracingapi_racecards_extractor,  # type: ignore
 )
 
@@ -24,7 +25,8 @@ def load_nothing_and_log():
 def source_data_runner():
     load_nothing_and_log()  # type: ignore
     theracingapi_racecards_extractor()  # type: ignore
-    rapid_horseracing_extractor()  # type: ignore
+    identify_missing_dates()  # type: ignore  # Ensure missing dates file is up to date
+    replace_missing_theracingapi_racecards()  # type: ignore  # TEMP: normally rapid_horseracing_extractor()
 
 
 if __name__ == "__main__":
