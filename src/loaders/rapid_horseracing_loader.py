@@ -16,26 +16,28 @@ from models import RapidRecord
 from processors.record_processor import record_processor
 from transformers.rapid_horseracing_transformer import (
     transform_results,
-    transform_results_as_entries,
+    transform_to_entries,
 )
 
 with Path("settings.toml").open("rb") as f:
     settings = tomllib.load(f)
 
-SOURCE = settings["rapid_horseracing"]["spaces_dir"]
+SPACES_DIR = settings["rapid_horseracing"]["spaces_dir"]
 
 db = client.handykapp
-SOURCE_NAME = "rapid_entries"
 
 
-@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
+@flow(
+    on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)]
+)
 def load_rapid_horseracing_entries(
-    *, until_date: pendulum.Date = pendulum.now().date()
+    *, source: str, until_date: pendulum.Date = pendulum.now().date()
 ):
     logger = get_run_logger()
-    logger.info("Starting rapid_horseracing entries loader")
+    logger.info(f"Starting rapid_horseracing entries loader, sourcing from {source}")
 
-    last_load = get_last_load(db, SOURCE_NAME)
+    source_name = f"rapid_{source}"
+    last_load = get_last_load(db, source_name)
     last_processed = last_load.last_processed if last_load else None
     if last_processed:
         logger.info(f"Resuming from last processed file: {last_processed}")
@@ -45,7 +47,7 @@ def load_rapid_horseracing_entries(
     r = record_processor()
     next(r)
 
-    source_location = f"{SOURCE}results"
+    source_location = f"{SPACES_DIR}{source}"
     files = list(SpacesClient.get_files(source_location))
     logger.info(f"Processing files from {source_location}")
 
@@ -61,26 +63,32 @@ def load_rapid_horseracing_entries(
             skip_until_file = None
 
         data = SpacesClient.read_file(file)
-        try:
-            record = RapidRecord(**data)
-            if pendulum.parse(record.date).date() >= until_date:  # type: ignore[union-attr]
-                continue
-            r.send((record, transform_results_as_entries, file, "rapid"))
-            record_count += 1
-        except Exception:
-            logger.error(f"Unable to create a record from {file}")
+        items = data if isinstance(data, list) else [data]
+
+        for item in items:
+            try:
+                record = RapidRecord(**item)
+                if pendulum.parse(record.date).date() >= until_date:  # type: ignore[union-attr]
+                    continue
+                r.send((record, transform_to_entries, file, "rapid"))
+                record_count += 1
+            except Exception:
+                logger.error(f"Unable to create a record from entry in {file}")
 
     r.close()
 
+    last_file = files[-1] if files else None
     if record_count > 0:
-        update_load(db, SOURCE_NAME, files[-1], record_count, "success")
+        update_load(db, source_name, last_file, record_count, "success")
         logger.info(f"Loaded {record_count} records")
     elif last_load is None or last_load.status != "skipped":
-        update_load(db, SOURCE_NAME, last_processed, 0, "skipped")
+        update_load(db, source_name, last_processed, 0, "skipped")
         logger.info("No new records to load")
 
 
-@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
+@flow(
+    on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)]
+)
 def load_rapid_horseracing_data():
     logger = get_run_logger()
     logger.info("Starting rapid_horseracing loader")
@@ -88,7 +96,7 @@ def load_rapid_horseracing_data():
     r = record_processor()
     next(r)
 
-    files = SpacesClient.get_files(f"{SOURCE}results")
+    files = SpacesClient.get_files(f"{SPACES_DIR}results")
 
     for file in files:
         if file != "results_to_do_list.json":

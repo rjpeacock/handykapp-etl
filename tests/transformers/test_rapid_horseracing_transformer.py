@@ -7,7 +7,7 @@ from models.rapid_runner import RapidRunner
 from transformers.rapid_horseracing_transformer import (
     transform_horse,
     transform_results,
-    transform_results_as_entries,
+    transform_to_entries,
 )
 
 
@@ -143,7 +143,7 @@ def test_transform_results_returns_correct_output(result_data, expected_runner):
     assert actual == expected
 
 
-def test_transform_results_as_entries_returns_correct_output(
+def test_transform_to_entries_returns_correct_output(
     result_data, expected_entry
 ):
     expected = PreMongoRace(
@@ -163,5 +163,5 @@ def test_transform_results_as_entries_returns_correct_output(
         runners=[expected_entry],
     )
 
-    actual = transform_results_as_entries(result_data)[0]
+    actual = transform_to_entries(result_data)[0]
     assert actual == expected

@@ -159,7 +159,7 @@ def transform_results(record: RapidRecord) -> list[PreMongoRace]:
     return [PreMongoRace(**race) for race in transformed_races]
 
 
-def transform_results_as_entries(record: RapidRecord) -> list[PreMongoRace]:
+def transform_to_entries(record: RapidRecord) -> list[PreMongoRace]:
     base = transform_results(record)
 
     entry_fields = set(PreMongoEntry.model_fields.keys())

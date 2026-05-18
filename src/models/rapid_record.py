@@ -16,4 +16,4 @@ class RapidRecord(BaseModel):
     finish_time: str | None = Field(None, description="Finish time of the race")
     prize: str | None = Field(None, description="Prize money for the race")
     race_class: str | None = Field(None, alias="class", description="Class of the race")
-    horses: list[RapidRunner] = Field(..., description="List of runners in the race")
+    horses: list[RapidRunner] = Field(default_factory=list, description="List of runners in the race")
