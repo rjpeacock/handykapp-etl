@@ -231,8 +231,6 @@ GRADE_PATTERN = re.compile(
 )
 
 
-
-
 MIDDLE_DETAILS_PATTERN = re.compile(
     r"""
     ^                                       # Start of the string
@@ -400,14 +398,18 @@ def transform_run(run: FormdataRun) -> dict:
         .addfield("finishing_position", lambda rec: rec["position"].split("p")[0])
         .addfield(
             "official_position",
-            lambda rec: rec["position"].split("p")[1]
-            if "p" in rec["position"]
-            else rec["finishing_position"],
+            lambda rec: (
+                rec["position"].split("p")[1]
+                if "p" in rec["position"]
+                else rec["finishing_position"]
+            ),
         )
         .addfield(
             "ratings",
-            lambda rec: compact({"rr_time": rec["time_rating"], "rr_form": rec["form_rating"]})
-            or None,
+            lambda rec: (
+                compact({"rr_time": rec["time_rating"], "rr_form": rec["form_rating"]})
+                or None
+            ),
         )
         .addfield(
             "going_assessment",
@@ -419,9 +421,18 @@ def transform_run(run: FormdataRun) -> dict:
                 )
             ),
         )
-        .cutout("position", "time_rating", "form_rating", "jockey", "date", "race_type", "win_prize", "course", "number_of_runners", "distance", "going")
+        .cutout(
+            "position",
+            "time_rating",
+            "form_rating",
+            "jockey",
+            "date",
+            "race_type",
+            "win_prize",
+            "course",
+            "number_of_runners",
+            "distance",
+            "going",
+        )
         .dicts()[0]
     )
-
-
-
