@@ -21,7 +21,7 @@ with Path("settings.toml").open("rb") as f:
 @flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
 def incremental_load():
     switch_date = pendulum.parse(settings["app"]["switch_date"]).date()
-    load_rapid_horseracing_entries(until_date=switch_date)
+    load_rapid_horseracing_entries(source="results", until_date=switch_date)
     load_theracingapi_data()
     load_bha_data()
 
