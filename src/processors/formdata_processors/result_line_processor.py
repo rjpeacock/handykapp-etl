@@ -16,6 +16,7 @@ def _apply_result_to_race(found_race, horse, run, pp, logger):
     race_id = found_race["_id"]
     result = transform_run(run)
     going_assessment = result.pop("going_assessment")
+    jockey = result.pop("jockey")
     update = {"$set": {**{f"runners.$.{k}": v for k, v in result.items()}}}
     if "going_assessment" not in found_race:
         update["$set"]["going_assessment"] = going_assessment
@@ -26,7 +27,7 @@ def _apply_result_to_race(found_race, horse, run, pp, logger):
     pp.send(
         (
             PreMongoPerson(
-                name=run.jockey,
+                name=jockey,
                 role="jockey",
                 race_id=race_id,
                 runner_id=horse["_id"],

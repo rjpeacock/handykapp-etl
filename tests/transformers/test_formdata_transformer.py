@@ -324,15 +324,16 @@ def test_transform_horse_returns_correct_output():
         form_rating=80,
     )
     expected = {
-        "lbs_carried": 140,
-        "headgear": None,
-        "allowance": None,
-        "beaten_distance": 2.0,
-        "going_assessment": "Good",
-        "finishing_position": "2",
-        "official_position": "3",
-        "ratings": {"rr_time": 80, "rr_form": 80},
-    }
+            "lbs_carried": 140,
+            "headgear": None,
+            "allowance": None,
+            "jockey": "D Tudhope",
+            "beaten_distance": 2.0,
+            "going_assessment": "Good",
+            "finishing_position": "2",
+            "official_position": "3",
+            "ratings": {"rr_time": 80, "rr_form": 80},
+        }
 
     actual = transform_run(data)
     assert actual == expected
