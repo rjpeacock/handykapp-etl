@@ -110,6 +110,9 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
                         logger.debug(f"{person} updated")
                         updated_count += 1
                     else:
+                        update_data = {f"references.{source}": name} | (
+                            {"ratings": ratings} if ratings else {}
+                        )
                         try:
                             inserted_person = db.people.insert_one(
                                 name_parts.as_dict()
@@ -121,8 +124,25 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
                             added_count += 1
                         except DuplicateKeyError:
                             logger.warning(f"Duplicate person: {name}")
-                            skipped_count += 1
-                            continue
+                            existing = db.people.find_one(
+                                {
+                                    "last": name_parts.last,
+                                    "first": name_parts.first,
+                                    "middle": name_parts.middle,
+                                }
+                            )
+                            if existing:
+                                found_id = existing["_id"]
+                                db.people.update_one(
+                                    {"_id": found_id}, {"$set": update_data}
+                                )
+                                updated_count += 1
+                            else:
+                                logger.error(
+                                    f"Could not locate existing person: {name}"
+                                )
+                                skipped_count += 1
+                                continue
 
                 # Add person to horse in race
                 if race_id:
