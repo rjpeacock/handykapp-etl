@@ -85,13 +85,16 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
                     possibilities = db.people.find(
                         {"last": name_parts.last}, {"_id": 1, "first": 1, "title": 1}
                     )
+                    _matches_by_initial = lambda p: (
+                        name_parts.first
+                        and p["first"]
+                        and name_parts.last
+                        and p["last"]
+                        and name_parts.first[0] == p["first"][0]
+                        and name_parts.title == p["title"]
+                    )
                     for possibility in possibilities:
-                        if name_parts.first == possibility["first"] or (
-                            name_parts.first
-                            and possibility["first"]
-                            and name_parts.first[0] == possibility["first"][0]
-                            and name_parts.title == possibility["title"]
-                        ):
+                        if name_parts.first == possibility["first"] or _matches_by_initial(possibility):
                             found_person = possibility
                             break
 
