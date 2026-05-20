@@ -131,3 +131,6 @@ def make_operations_update(
         return [*non_gelding_ops, create_gelding_operation(horse.gelded_from)]
 
     return operations
+
+
+

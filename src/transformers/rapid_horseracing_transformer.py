@@ -31,6 +31,10 @@ def standardise_name(name: str) -> str:
     if name == "Non Runner":
         return ""
 
+    if ", " in name:
+        name, country = name.rsplit(", ", 1)  # noqa: RUF059
+        # TODO: Persist country to the person document
+
     if name.upper().startswith("IRELAND"):
         name = name.upper().replace("IRELAND", "").title()
 
@@ -81,11 +85,13 @@ def transform_horse(
         .addfield("name", lambda rec: Horse(rec["horse"]).name.upper())
         .addfield(
             "year",
-            lambda rec: HorseAge(
-                rec["age"],
-                context_date=race_date,
-                hemisphere=Country[rec["country"]].hemisphere,  # type: ignore[attr-defined]
-            )._official_dob.year,
+            lambda rec: (
+                HorseAge(
+                    rec["age"],
+                    context_date=race_date,
+                    hemisphere=Country[rec["country"]].hemisphere,  # type: ignore[attr-defined]
+                )._official_dob.year
+            ),
         )
         .addfield(
             "finishing_time",
@@ -124,22 +130,25 @@ def transform_results(record: RapidRecord) -> list[PreMongoRace]:
         )
         .addfield(
             "is_handicap",
-            lambda rec: "HANDICAP" in rec["title"].upper()
-            or "H'CAP" in rec["title"].upper(),
+            lambda rec: (
+                "HANDICAP" in rec["title"].upper() or "H'CAP" in rec["title"].upper()
+            ),
             index=4,
         )
         .addfield("obstacle", lambda rec: parse_obstacle(rec["title"]))
         .addfield(
             "surface",
             lambda rec: (
-                next(iter(Going.multiparse(x).values()))
-                if "COURSE" in x.upper()
-                else Going(x)
-            )
-            .surface.name.title()
-            .replace("_", " ")
-            if (x := rec["going_description"])
-            else None,
+                (
+                    next(iter(Going.multiparse(x).values()))
+                    if "COURSE" in x.upper()
+                    else Going(x)
+                )
+                .surface.name.title()
+                .replace("_", " ")
+                if (x := rec["going_description"])
+                else None
+            ),
         )
         .addfield("code", lambda rec: parse_code(rec["obstacle"], rec["title"]))
         .addfield(
