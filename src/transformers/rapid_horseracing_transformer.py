@@ -7,6 +7,7 @@ from helpers import horse_name_to_pre_mongo_horse
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import operator
+import re
 
 import pendulum
 import petl  # type: ignore
@@ -28,7 +29,7 @@ from transformers.parsers import (
 
 
 def standardise_name(name: str) -> str:
-    if name == "Non Runner":
+    if re.match(r"^non[-_\s]?runner", name, re.IGNORECASE):
         return ""
 
     if ", " in name:
