@@ -83,7 +83,7 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
 
                     # Only fetch fields we need for matching - much faster
                     possibilities = db.people.find(
-                        {"last": name_parts.last}, {"_id": 1, "first": 1, "title": 1}
+                        {"last": name_parts.last}, {"_id": 1, "first": 1, "title": 1, "last": 1}
                     )
                     _matches_by_initial = lambda p: (
                         name_parts.first
