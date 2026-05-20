@@ -425,7 +425,6 @@ def transform_run(run: FormdataRun) -> dict:
             "position",
             "time_rating",
             "form_rating",
-            "jockey",
             "date",
             "race_type",
             "win_prize",
