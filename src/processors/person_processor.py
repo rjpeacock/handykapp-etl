@@ -97,12 +97,15 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
                         {"last": name_parts.last},
                         {"_id": 1, "first": 1, "title": 1, "last": 1},
                     )
-                    for possibility in possibilities:
-                        if name_parts.first == possibility[
-                            "first"
-                        ] or _matches_by_initial(name_parts, possibility):
-                            found_person = possibility
-                            break
+                    found_person = next(
+                        (
+                            p
+                            for p in possibilities
+                            if p["first"] == name_parts.first
+                            or _matches_by_initial(name_parts, p)
+                        ),
+                        None,
+                    )
 
                     if found_person:
                         found_id = found_person["_id"]
