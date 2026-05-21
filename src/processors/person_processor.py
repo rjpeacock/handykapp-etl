@@ -37,6 +37,17 @@ def _flush_person_updates(updates):
     db.races.bulk_write(updates, ordered=False)
 
 
+def _matches_by_initial(name_parts, p):
+    return (
+        name_parts.first
+        and p["first"]
+        and name_parts.last
+        and p["last"]
+        and name_parts.first[0] == p["first"][0]
+        and name_parts.title == p["title"]
+    )
+
+
 def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
     logger = get_run_logger()
     logger.info("Starting person processor")
@@ -86,18 +97,10 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
                         {"last": name_parts.last},
                         {"_id": 1, "first": 1, "title": 1, "last": 1},
                     )
-                    matches_by_initial = lambda p: (
-                        name_parts.first
-                        and p["first"]
-                        and name_parts.last
-                        and p["last"]
-                        and name_parts.first[0] == p["first"][0]
-                        and name_parts.title == p["title"]
-                    )
                     for possibility in possibilities:
                         if name_parts.first == possibility[
                             "first"
-                        ] or matches_by_initial(possibility):
+                        ] or _matches_by_initial(name_parts, possibility):
                             found_person = possibility
                             break
 
