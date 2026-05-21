@@ -83,9 +83,10 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
 
                     # Only fetch fields we need for matching - much faster
                     possibilities = db.people.find(
-                        {"last": name_parts.last}, {"_id": 1, "first": 1, "title": 1, "last": 1}
+                        {"last": name_parts.last},
+                        {"_id": 1, "first": 1, "title": 1, "last": 1},
                     )
-                    _matches_by_initial = lambda p: (
+                    matches_by_initial = lambda p: (
                         name_parts.first
                         and p["first"]
                         and name_parts.last
@@ -94,7 +95,9 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
                         and name_parts.title == p["title"]
                     )
                     for possibility in possibilities:
-                        if name_parts.first == possibility["first"] or _matches_by_initial(possibility):
+                        if name_parts.first == possibility[
+                            "first"
+                        ] or matches_by_initial(possibility):
                             found_person = possibility
                             break
 
@@ -148,7 +151,10 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
                 if race_id:
                     person_updates.append(
                         UpdateOne(
-                            {"_id": ObjectId(race_id), "runners.horse": ObjectId(runner_id)},
+                            {
+                                "_id": ObjectId(race_id),
+                                "runners.horse": ObjectId(runner_id),
+                            },
                             {"$set": {f"runners.$.{role}": found_id}},
                         )
                     )
@@ -161,7 +167,9 @@ def person_processor() -> Generator[None, tuple[PreMongoPerson, str], None]:
                                 f"Failed to flush {len(person_updates)} person updates, "
                                 f"re-queuing {person.name}"
                             )
-                            person_updates = [person_updates[-1]] if person_updates else []
+                            person_updates = (
+                                [person_updates[-1]] if person_updates else []
+                            )
             except Exception:
                 logger.exception(
                     f"Person processor error: name={person.name}, "
