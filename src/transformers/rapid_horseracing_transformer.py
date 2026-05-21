@@ -32,14 +32,19 @@ def standardise_name(name: str) -> str:
     if re.match(r"^non[-_\s]?runner", name, re.IGNORECASE):
         return ""
 
+    aggressive = False
+
     if ", " in name:
-        name, country = name.rsplit(", ", 1)  # noqa: RUF059
+        name, country = name.rsplit(", ", 1)
+        if country.lower() == "ireland":
+            aggressive = True
         # TODO: Persist country to the person document
 
     if name.upper().startswith("IRELAND"):
+        aggressive = True
         name = name.upper().replace("IRELAND", "").title()
 
-    return eirify(scotify(name))
+    return eirify(scotify(name), aggressive=aggressive)
 
 
 def transform_horse(
