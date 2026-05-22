@@ -36,9 +36,6 @@ def drop_database():
 
 @task
 def spec_database():
-    db.formdata.create_index(
-        [("name", ASC), ("country", ASC), ("year", ASC)], unique=True
-    )
     db.horses.create_index(
         [("name", ASC), ("country", ASC), ("year", ASC)],
         unique=True,
@@ -74,7 +71,9 @@ def spec_database():
     db.people.create_index({"references.$**": 1})
 
 
-@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
+@flow(
+    on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)]
+)
 def nuclear_reload():
     drop_database()
     spec_database()
