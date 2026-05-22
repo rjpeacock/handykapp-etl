@@ -46,9 +46,10 @@ def test_betfair_processor_handles_duplicate_key_error(mock_db, mocker):
     assert mock_db.betfair.count_documents({}) == 0
 
 
-def test_betfair_price_processor_accepts_record(mocker):
+def test_betfair_price_processor_accepts_record(mock_db, mocker):
     from models.betfair_price_record import BetfairPriceRecord
 
+    mocker.patch("processors.betfair_processor.db", mock_db)
     mocker.patch("processors.betfair_processor.get_run_logger")
 
     gen = betfair_price_processor()
@@ -72,6 +73,8 @@ def test_betfair_price_processor_accepts_record(mocker):
         morning_traded_volume="266.8",
         pre_play_traded_volume="11707.9",
         in_play_traded_volume="21136.7",
+        country="uk",
+        market_type="win",
     )
     gen.send(rec)
     gen.close()

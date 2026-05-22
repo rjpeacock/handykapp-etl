@@ -65,8 +65,8 @@ def load_betfair_horserace_prices(
     for day in range((end - start_date).days + 1):
         d = start_date.add(days=day)
         for country in countries:
-            for mtype in market_types:
-                url = generate_url(country, mtype, d)
+            for market_type in market_types:
+                url = generate_url(country, market_type, d)
                 try:
                     content = fetch_content(url)
                 except Exception:
@@ -74,7 +74,10 @@ def load_betfair_horserace_prices(
                 reader = csv.DictReader(content.decode("utf-8").splitlines())
                 records = [betfair_price_transformer(row) for row in reader]
                 for record in records:
+                    record.country = country
+                    record.market_type = market_type
                     bf.send(record)
+        bf.send(None)
 
     bf.close()
 

@@ -8,9 +8,10 @@ def test_generate_url():
     assert url == "https://promo.betfair.com/betfairsp/prices/dwbfpricesireplace22052026.csv"
 
 
-def test_load_betfair_horserace_prices(mocker):
+def test_load_betfair_horserace_prices(mock_db, mocker):
     mocker.patch("loaders.betfair_loader.get_run_logger")
     mocker.patch("processors.betfair_processor.get_run_logger")
+    mocker.patch("processors.betfair_processor.db", mock_db)
 
     csv_content = (
         "event_id,menu_hint,event_name,event_dt,selection_id,selection_name,"
