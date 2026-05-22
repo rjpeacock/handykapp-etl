@@ -11,13 +11,18 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 import pendulum
 from prefect import flow, get_run_logger
 
+from clients import mongo_client as client
 from helpers.alert_handlers import failure_handler
 from helpers.helpers import fetch_content
+from helpers.loads_tracker import get_last_load, update_load
 from processors.betfair_processor import betfair_pnl_processor, betfair_price_processor
 from transformers.betfair_transformer import (
     betfair_pnl_transformer,
     betfair_price_transformer,
 )
+
+db = client.handykapp
+SOURCE_NAME = "betfair_prices"
 
 with pathlib.Path("settings.toml").open("rb") as f:
     settings = tomllib.load(f)
@@ -57,7 +62,20 @@ def load_betfair_horserace_prices(
 ):
     logger = get_run_logger()
     logger.info("Starting betfair price loader")
+
+    last_load = get_last_load(db, SOURCE_NAME)
+    if last_load and last_load.last_processed:
+        start_date = pendulum.from_format(
+            last_load.last_processed, "YYYY-MM-DD"
+        ).date().add(days=1)
+
     end = end_date or pendulum.today().date()
+
+    if start_date > end:
+        last_processed = last_load.last_processed if last_load else None
+        logger.info(f"Betfair prices up to date (last processed {last_processed})")
+        update_load(db, SOURCE_NAME, last_processed, 0, "skipped")
+        return
 
     bf = betfair_price_processor()
     next(bf)
@@ -78,8 +96,10 @@ def load_betfair_horserace_prices(
                     record.market_type = market_type
                     bf.send(record)
         bf.send(None)
+        update_load(db, SOURCE_NAME, d.format("YYYY-MM-DD"), 0, "running")
 
     bf.close()
+    update_load(db, SOURCE_NAME, end.format("YYYY-MM-DD"), 0, "success")
 
 
 if __name__ == "__main__":
