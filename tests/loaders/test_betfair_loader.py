@@ -10,6 +10,9 @@ def test_generate_url():
 
 def test_load_betfair_horserace_prices(mock_db, mocker):
     mocker.patch("loaders.betfair_loader.get_run_logger")
+    mocker.patch("loaders.betfair_loader.db", mock_db)
+    mocker.patch("loaders.betfair_loader.get_last_load", return_value=None)
+    mocker.patch("loaders.betfair_loader.update_load")
     mocker.patch("processors.betfair_processor.get_run_logger")
     mocker.patch("processors.betfair_processor.db", mock_db)
 
