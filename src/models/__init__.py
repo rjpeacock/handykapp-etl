@@ -1,3 +1,4 @@
+from .betfair_price_record import BetfairPriceRecord
 from .bha_perf_figs_record import BHAPerfFigsRecord
 from .bha_ratings_record import BHARatingsRecord
 from .formdata_horse import FormdataHorse
@@ -25,6 +26,7 @@ from .theracingapi_runner import TheRacingApiRunner
 __all__ = [
     "BHAPerfFigsRecord",
     "BHARatingsRecord",
+    "BetfairPriceRecord",
     "FormdataHorse",
     "FormdataPosition",
     "FormdataRun",
