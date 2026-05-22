@@ -54,7 +54,7 @@ def load_betfair_horserace_pnl():
 
 
 @flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
-def load_betfair_horserace_prices(
+def load_betfair_prices(
     countries: list[str] = ["uk", "ire"],
     market_types: list[str] = ["win", "place"],
     start_date: pendulum.Date = DEFAULT_START,
