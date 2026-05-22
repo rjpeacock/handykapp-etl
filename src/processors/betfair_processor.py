@@ -1,9 +1,30 @@
+from collections.abc import Generator
+
 from prefect import get_run_logger
 from pymongo.errors import DuplicateKeyError
 
 from clients import mongo_client as client
+from models.betfair_price_record import BetfairPriceRecord
 
 db = client.handykapp
+
+
+def betfair_price_processor() -> Generator[None, BetfairPriceRecord, None]:
+    logger = get_run_logger()
+    logger.info("Starting betfair price processor")
+    added_count = 0
+    skipped_count = 0
+
+    try:
+        while True:
+            _price_line = yield
+            # TODO: insert into MongoDB
+            added_count += 1
+
+    except GeneratorExit:
+        logger.info(
+            f"Finished processing Betfair prices. Added {added_count}, skipped {skipped_count}"
+        )
 
 
 def betfair_pnl_processor():
@@ -16,7 +37,7 @@ def betfair_pnl_processor():
     try:
         while True:
             pnl_line = yield
-            
+
             try:
                 inserted_pnl_line = db.betfair.insert_one(
                     pnl_line.model_dump()

@@ -2,10 +2,40 @@ import pendulum
 import pytest
 
 from src.transformers.betfair_transformer import (
+    betfair_price_transformer,
     get_places_from_place_detail,
     transform_betfair_pnl_data,
     validate_betfair_pnl_data,
 )
+
+
+def test_betfair_price_transformer():
+    from decimal import Decimal
+
+    row = {
+        "event_id": "258376466",
+        "menu_hint": "Southwell 21st May",
+        "event_name": "6f Hcap",
+        "event_dt": "21-05-2026 21:00",
+        "selection_id": "47164177",
+        "selection_name": "Albert Cee",
+        "win_lose": "1",
+        "bsp": "9.51597833",
+        "ppwap": "8.2376",
+        "morningwap": "10.2947",
+        "ppmax": "11.00",
+        "ppmin": "8.80",
+        "ipmax": "2.02",
+        "ipmin": "1.01",
+        "morningtradedvol": "266.84",
+        "pptradedvol": "11707.88",
+        "iptradedvol": "21136.66",
+    }
+    record = betfair_price_transformer(row)
+    assert record.horse_name == "Albert Cee"
+    assert record.win is True
+    assert record.bsp == Decimal("9.51597833")
+    assert record.race_datetime == pendulum.datetime(2026, 5, 21, 21, 0, 0)
 
 
 @pytest.fixture
