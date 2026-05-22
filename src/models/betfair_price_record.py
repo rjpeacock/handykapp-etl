@@ -37,3 +37,5 @@ class BetfairPriceRecord(BaseModel):
     morning_traded_volume: Decimal = Field(alias="morningtradedvol")
     pre_play_traded_volume: Decimal = Field(alias="pptradedvol")
     in_play_traded_volume: Decimal = Field(alias="iptradedvol")
+    country: str = ""
+    market_type: str = ""

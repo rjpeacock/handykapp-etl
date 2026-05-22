@@ -21,4 +21,6 @@ class MongoRace(BaseModel):
     rating_restriction: str | None = None
     prize: str | None = None
     going_description: str | None = None
+    bf_win_market_id: str | None = None
+    bf_place_market_id: str | None = None
     runners: list[MongoRunner] = []

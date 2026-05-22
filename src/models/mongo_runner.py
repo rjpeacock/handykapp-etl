@@ -1,9 +1,18 @@
+from decimal import Decimal
 from typing import Literal
 
 from pydantic import BaseModel
 from pydantic_extra_types.pendulum_dt import Date, Duration
 
 from .py_object_id import PyObjectId
+
+
+class Prices(BaseModel):
+    sp: str | None = None
+    bsp_win: Decimal | None = None
+    bwap_win: Decimal | None = None
+    bsp_place: Decimal | None = None
+    bwap_place: Decimal | None = None
 
 
 class MongoRunner(BaseModel):
@@ -27,5 +36,5 @@ class MongoRunner(BaseModel):
     official_position: str | None = None
     beaten_distance: float | None = None
     time: Duration | None = None
-    sp: str | None = None
+    prices: Prices | None = None
     ratings: dict[str, int] | None = None

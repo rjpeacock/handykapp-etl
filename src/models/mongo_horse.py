@@ -31,3 +31,4 @@ class MongoHorse(BaseModel):
     trainer: PyObjectId | None = None
     operations: list[MongoOperation] | None = None
     ratings: MongoOfficialRatings | None = None
+    bf_id: str | None = None
