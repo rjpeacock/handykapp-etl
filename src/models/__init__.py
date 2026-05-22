@@ -10,7 +10,7 @@ from .mongo_person import MongoPerson
 from .mongo_race import MongoRace
 from .mongo_racecourse import MongoRacecourse
 from .mongo_references import MongoReferences
-from .mongo_runner import MongoRunner
+from .mongo_runner import MongoRunner, Prices
 from .pre_mongo_entry import PreMongoEntry
 from .pre_mongo_horse import PreMongoHorse
 from .pre_mongo_person import PreMongoPerson, Role
@@ -44,6 +44,7 @@ __all__ = [
     "PreMongoRace",
     "PreMongoRaceCourseDetails",
     "PreMongoRunner",
+    "Prices",
     "PyObjectId",
     "RapidRecord",
     "RapidRunner",
