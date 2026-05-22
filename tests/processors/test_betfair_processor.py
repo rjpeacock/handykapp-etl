@@ -1,16 +1,15 @@
-import pytest
-from pymongo.errors import DuplicateKeyError
 import pendulum
+from pymongo.errors import DuplicateKeyError
 
 from models.mongo_betfair_horserace_pnl import MongoBetfairHorseracePnl
-from processors.betfair_processor import betfair_processor
+from processors.betfair_processor import betfair_pnl_processor
 
 
 def test_betfair_processor_inserts_pnl(mock_db, mocker):
     mocker.patch("processors.betfair_processor.db", mock_db)
     mocker.patch("processors.betfair_processor.get_run_logger")
 
-    gen = betfair_processor()
+    gen = betfair_pnl_processor()
     next(gen)
     
     pnl = MongoBetfairHorseracePnl(
@@ -33,7 +32,7 @@ def test_betfair_processor_handles_duplicate_key_error(mock_db, mocker):
     mocker.patch("processors.betfair_processor.db", mock_db)
     mocker.patch("processors.betfair_processor.get_run_logger")
 
-    gen = betfair_processor()
+    gen = betfair_pnl_processor()
     next(gen)
     
     pnl = MongoBetfairHorseracePnl(

@@ -6,7 +6,7 @@ from clients import mongo_client as client
 db = client.handykapp
 
 
-def betfair_processor():
+def betfair_pnl_processor():
     logger = get_run_logger()
     logger.info("Starting betfair processor")
     updated_count = 0
