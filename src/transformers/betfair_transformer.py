@@ -9,6 +9,7 @@ from pybet import Odds
 
 from clients import SpacesClient
 from helpers import log_validation_problem
+from models.betfair_price_record import BetfairPriceRecord
 from models.mongo_betfair_horserace_bet_history import MongoBetfairHorseraceBetHistory
 from models.mongo_betfair_horserace_pnl import MongoBetfairHorseracePnl
 
@@ -263,6 +264,10 @@ def validate_betfair_pnl_data(data: petl.Table) -> bool:
     ]
     validator = {"header": header, "constraints": constraints}
     return petl.validate(data, **validator)
+
+
+def betfair_price_transformer(row: dict) -> BetfairPriceRecord:
+    return BetfairPriceRecord.model_validate(row)
 
 
 @flow
