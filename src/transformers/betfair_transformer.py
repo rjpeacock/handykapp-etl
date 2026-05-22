@@ -266,7 +266,7 @@ def validate_betfair_pnl_data(data: petl.Table) -> bool:
 
 
 @flow
-def betfair_transformer():
+def betfair_pnl_transformer():
     csv = get_csv()
     data = read_csv(csv)
     problems = validate_betfair_pnl_data(data)
@@ -276,5 +276,5 @@ def betfair_transformer():
 
 
 if __name__ == "__main__":
-    data = betfair_transformer()  # type: ignore
+    data = betfair_pnl_transformer()  # type: ignore
     print(data)
