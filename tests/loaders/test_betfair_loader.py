@@ -17,9 +17,9 @@ def test_load_betfair_horserace_prices(mock_db, mocker):
     mocker.patch("processors.betfair_processor.db", mock_db)
 
     csv_content = (
-        "event_id,menu_hint,event_name,event_dt,selection_id,selection_name,"
-        "win_lose,bsp,ppwap,morningwap,ppmax,ppmin,ipmax,ipmin,"
-        "morningtradedvol,pptradedvol,iptradedvol\n"
+        "EVENT_ID,MENU_HINT,EVENT_NAME,EVENT_DT,SELECTION_ID,SELECTION_NAME,"
+        "WIN_LOSE,BSP,PPWAP,MORNINGWAP,PPMAX,PPMIN,IPMAX,IPMIN,"
+        "MORNINGTRADEDVOL,PPTRADEDVOL,IPTRADEDVOL\n"
         "1,Southwell 21st May,6f Hcap,21-05-2026 21:00,42,Albert Cee,1,9.5,"
         "8.2,10.3,11.0,8.8,2.0,1.0,266.8,11707.9,21136.7\n"
     )
