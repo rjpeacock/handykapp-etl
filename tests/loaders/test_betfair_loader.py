@@ -8,7 +8,7 @@ def test_generate_url():
     assert url == "https://promo.betfair.com/betfairsp/prices/dwbfpricesireplace22052026.csv"
 
 
-def test_load_betfair_horserace_prices(mock_db, mocker):
+def test_load_betfair_prices(mock_db, mocker):
     mocker.patch("loaders.betfair_loader.get_run_logger")
     mocker.patch("loaders.betfair_loader.db", mock_db)
     mocker.patch("loaders.betfair_loader.get_last_load", return_value=None)
@@ -29,9 +29,9 @@ def test_load_betfair_horserace_prices(mock_db, mocker):
         return_value=csv_content.encode("utf-8"),
     )
 
-    from loaders.betfair_loader import load_betfair_horserace_prices
+    from loaders.betfair_loader import load_betfair_prices
 
-    load_betfair_horserace_prices(
+    load_betfair_prices(
         countries=["uk"],
         market_types=["win"],
         start_date=pendulum.date(2026, 5, 22),

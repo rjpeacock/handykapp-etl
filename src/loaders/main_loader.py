@@ -19,7 +19,7 @@ from helpers.alert_handlers import failure_handler
 with Path("settings.toml").open("rb") as f:
     settings = tomllib.load(f)
 
-from .betfair_loader import load_betfair_horserace_prices
+from .betfair_loader import load_betfair_prices
 from .bha_loader import load_bha_data
 from .formdata_loader import load_formdata
 from .racecourse_loader import load_racecourses
@@ -84,7 +84,7 @@ def nuclear_reload():
     load_theracingapi_data()
     load_bha_data()
     load_formdata()
-    load_betfair_horserace_prices()
+    load_betfair_prices()
 
 
 if __name__ == "__main__":

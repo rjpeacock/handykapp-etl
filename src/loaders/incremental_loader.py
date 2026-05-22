@@ -10,7 +10,7 @@ from prefect import flow
 
 from helpers.alert_handlers import failure_handler
 
-from .betfair_loader import load_betfair_horserace_prices
+from .betfair_loader import load_betfair_prices
 from .bha_loader import load_bha_data
 from .rapid_horseracing_loader import load_rapid_horseracing_entries
 from .theracingapi_loader import load_theracingapi_data
@@ -25,7 +25,7 @@ def incremental_load():
     load_rapid_horseracing_entries(source="results", until_date=switch_date)
     load_theracingapi_data()
     load_bha_data()
-    load_betfair_horserace_prices()
+    load_betfair_prices()
 
 
 if __name__ == "__main__":
