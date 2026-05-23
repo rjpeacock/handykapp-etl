@@ -38,6 +38,31 @@ def test_betfair_price_transformer():
     assert record.race_datetime == pendulum.datetime(2026, 5, 21, 21, 0, 0)
 
 
+def test_betfair_price_transformer_handles_empty_strings():
+    row = {
+        "EVENT_ID": "1",
+        "MENU_HINT": "Southwell 21st May",
+        "EVENT_NAME": "6f Hcap",
+        "EVENT_DT": "21-05-2026 21:00",
+        "SELECTION_ID": "42",
+        "SELECTION_NAME": "Horse",
+        "WIN_LOSE": "1",
+        "BSP": "",
+        "PPWAP": "",
+        "MORNINGWAP": "",
+        "PPMAX": "",
+        "PPMIN": "",
+        "IPMAX": "",
+        "IPMIN": "",
+        "MORNINGTRADEDVOL": "",
+        "PPTRADEDVOL": "",
+        "IPTRADEDVOL": "",
+    }
+    record = betfair_price_transformer(row)
+    assert record.bsp is None
+    assert record.pre_play_wap is None
+
+
 @pytest.fixture
 def mock_data():
     return [
