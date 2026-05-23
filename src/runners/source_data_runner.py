@@ -10,7 +10,6 @@ from extractors.rapid_horseracing_extractor import (
     replace_missing_theracingapi_racecards,  # type: ignore  # TEMP: replaces rapid_horseracing_extractor
 )
 from extractors.theracingapi_extractor import (
-    identify_missing_dates,  # type: ignore
     theracingapi_racecards_extractor,  # type: ignore
 )
 
@@ -25,8 +24,7 @@ def load_nothing_and_log():
 def source_data_runner():
     load_nothing_and_log()  # type: ignore
     theracingapi_racecards_extractor()  # type: ignore
-    identify_missing_dates()  # type: ignore  # Ensure missing dates file is up to date
-    replace_missing_theracingapi_racecards()  # type: ignore  # TEMP: normally rapid_horseracing_extractor()
+    replace_missing_theracingapi_racecards()  # type: ignore
 
 
 if __name__ == "__main__":
