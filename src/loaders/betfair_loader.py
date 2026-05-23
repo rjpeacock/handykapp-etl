@@ -103,7 +103,7 @@ def load_betfair_prices(
                     records = []
                     for row in reader:
                         flat = is_flat_race(row["EVENT_NAME"])
-                        flat_cache[(row["MENU_HINT"], row["EVENT_DT"])] = flat
+                        flat_cache[row["MENU_HINT"], row["EVENT_DT"]] = flat
                         if flat:
                             records.append(betfair_price_transformer(row))
                 else:
