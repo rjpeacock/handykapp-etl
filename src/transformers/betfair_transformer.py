@@ -266,7 +266,16 @@ def validate_betfair_pnl_data(data: petl.Table) -> bool:
     return petl.validate(data, **validator)
 
 
+DECIMAL_FIELDS = {
+    "BSP", "PPWAP", "MORNINGWAP", "PPMAX", "PPMIN",
+    "IPMAX", "IPMIN", "MORNINGTRADEDVOL", "PPTRADEDVOL", "IPTRADEDVOL",
+}
+
+
 def betfair_price_transformer(row: dict) -> BetfairPriceRecord:
+    for key in DECIMAL_FIELDS:
+        if row.get(key) == "":
+            row[key] = None
     return BetfairPriceRecord.model_validate(row)
 
 
