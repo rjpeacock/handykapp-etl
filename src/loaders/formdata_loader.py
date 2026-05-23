@@ -34,7 +34,7 @@ def load_formdata():
     f = file_processor()
     next(f)
 
-    files = get_formdatas(code=RacingCode.FLAT, after_year=22, for_refresh=True)
+    files = get_formdatas(code=RacingCode.FLAT, after_year=20, for_refresh=True)
     for file in files:
         f.send(file)
 
