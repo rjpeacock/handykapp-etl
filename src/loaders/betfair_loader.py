@@ -34,6 +34,13 @@ DEFAULT_START = pendulum.from_format(
 FILENAME_PREFIX = "dwbfprices"
 
 
+JUMP_INDICATORS = {"HRD", "CHS", "XC", "NHF"}
+
+
+def is_flat_race(event_name: str) -> bool:
+    return not any(i in event_name.upper() for i in JUMP_INDICATORS)
+
+
 def generate_url(country: str, market_type: str, date: pendulum.Date) -> str:
     suffix = date.format("DDMMYYYY")
     return f"{BASE_URL}/{FILENAME_PREFIX}{country}{market_type}{suffix}.csv"
@@ -90,7 +97,10 @@ def load_betfair_prices(
                 except Exception:
                     continue
                 reader = csv.DictReader(content.decode("utf-8").splitlines())
-                records = [betfair_price_transformer(row) for row in reader]
+                records = [
+                    betfair_price_transformer(row) for row in reader
+                    if is_flat_race(row["EVENT_NAME"])
+                ]
                 for record in records:
                     record.country = country
                     record.market_type = market_type

@@ -1,6 +1,29 @@
 import pendulum
+import pytest
 
-from loaders.betfair_loader import generate_url
+from loaders.betfair_loader import generate_url, is_flat_race
+
+
+@pytest.mark.parametrize(
+    ("event_name", "expected"),
+    [
+        ("6f Hcap", True),
+        ("1m2f Stks", True),
+        ("5f Mdn Stks", True),
+        ("1m Hcap", True),
+        ("2m Hrd", False),
+        ("3m1f Hcap Chs", False),
+        ("2m XC", False),
+        ("2m NHF", False),
+        ("2m Hrd Hcap", False),
+        ("hrd", False),
+        ("chs", False),
+        ("xc", False),
+        ("nhf", False),
+    ],
+)
+def test_is_flat_race(event_name, expected):
+    assert is_flat_race(event_name) is expected
 
 
 def test_generate_url():
@@ -22,6 +45,8 @@ def test_load_betfair_prices(mock_db, mocker):
         "MORNINGTRADEDVOL,PPTRADEDVOL,IPTRADEDVOL\n"
         "1,Southwell 21st May,6f Hcap,21-05-2026 21:00,42,Albert Cee,1,9.5,"
         "8.2,10.3,11.0,8.8,2.0,1.0,266.8,11707.9,21136.7\n"
+        "2,Cheltenham 15th Mar,2m Hrd,15-03-2026 14:00,99,Jump King,1,4.5,"
+        "4.2,4.8,5.0,4.0,1.5,1.0,500.0,10000.0,15000.0\n"
     )
 
     mock_fetch = mocker.patch(
