@@ -1,6 +1,9 @@
+import logging
+
 import pendulum
 import pytest
 
+from models.betfair_price_record import BetfairPriceRecord
 from loaders.betfair_loader import generate_url, is_flat_race
 
 
@@ -24,6 +27,37 @@ from loaders.betfair_loader import generate_url, is_flat_race
 )
 def test_is_flat_race(event_name, expected):
     assert is_flat_race(event_name) is expected
+
+
+def test_parse_win_lose_warns_on_unexpected_value(mocker):
+    mock_warning = mocker.patch.object(logging, "warning")
+    record = BetfairPriceRecord.model_validate({
+        "EVENT_ID": "1",
+        "MENU_HINT": "Southwell 21st May",
+        "EVENT_NAME": "6f Hcap",
+        "EVENT_DT": "21-05-2026 21:00",
+        "SELECTION_ID": "42",
+        "SELECTION_NAME": "Horse",
+        "WIN_LOSE": "2",
+        "BSP": "5.0",
+        "PPWAP": "4.0",
+        "MORNINGWAP": "3.0",
+        "PPMAX": "6.0",
+        "PPMIN": "2.0",
+        "IPMAX": "3.0",
+        "IPMIN": "1.0",
+        "MORNINGTRADEDVOL": "100.0",
+        "PPTRADEDVOL": "500.0",
+        "IPTRADEDVOL": "200.0",
+    })
+    assert record.win is True
+    mock_warning.assert_called_once()
+    args, _ = mock_warning.call_args
+    assert "2" in args[0]
+    assert "6f Hcap" in args[0]
+    assert "Horse" in args[0]
+    assert "1" in args[0]
+    assert "Southwell 21st May" in args[0]
 
 
 def test_generate_url():

@@ -55,26 +55,26 @@ def test_betfair_price_processor_accepts_record(mock_db, mocker):
     gen = betfair_price_processor()
     next(gen)
 
-    rec = BetfairPriceRecord(
-        event_id="1",
-        course_and_date="Southwell 21st May",
-        event_name="6f Hcap",
-        race_datetime=pendulum.datetime(2026, 5, 21, 21, 0, 0),
-        selection_id="42",
-        horse_name="Albert Cee",
-        win=True,
-        bsp="9.5",
-        pre_play_wap="8.2",
-        morning_wap="10.3",
-        pre_play_max="11.0",
-        pre_play_min="8.8",
-        in_play_max="2.0",
-        in_play_min="1.0",
-        morning_traded_volume="266.8",
-        pre_play_traded_volume="11707.9",
-        in_play_traded_volume="21136.7",
-        country="uk",
-        market_type="win",
-    )
+    rec = BetfairPriceRecord.model_validate({
+        "EVENT_ID": "1",
+        "MENU_HINT": "Southwell 21st May",
+        "EVENT_NAME": "6f Hcap",
+        "EVENT_DT": "21-05-2026 21:00",
+        "SELECTION_ID": "42",
+        "SELECTION_NAME": "Albert Cee",
+        "WIN_LOSE": "1",
+        "BSP": "9.5",
+        "PPWAP": "8.2",
+        "MORNINGWAP": "10.3",
+        "PPMAX": "11.0",
+        "PPMIN": "8.8",
+        "IPMAX": "2.0",
+        "IPMIN": "1.0",
+        "MORNINGTRADEDVOL": "266.8",
+        "PPTRADEDVOL": "11707.9",
+        "IPTRADEDVOL": "21136.7",
+    })
+    rec.country = "uk"
+    rec.market_type = "win"
     gen.send(rec)
     gen.close()
