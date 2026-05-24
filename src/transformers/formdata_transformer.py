@@ -421,6 +421,10 @@ def transform_run(run: FormdataRun) -> dict:
                 )
             ),
         )
+        .addfield(
+            "surface",
+            lambda rec: "AW" if rec["going"].islower() else "Turf",
+        )
         .cutout(
             "position",
             "time_rating",
