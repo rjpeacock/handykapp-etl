@@ -17,10 +17,12 @@ def _apply_result_to_race(found_race, horse, run, pp, logger):
     race_id = found_race["_id"]
     result = transform_run(run)
     going_assessment = result.pop("going_assessment")
+    surface = result.pop("surface")
     jockey = result.pop("jockey")
     update = {"$set": {**{f"runners.$.{k}": v for k, v in compact(result).items()}}}
     if "going_assessment" not in found_race:
         update["$set"]["going_assessment"] = going_assessment
+        update["$set"]["surface"] = surface
     db.races.update_one(
         {"_id": race_id, "runners.horse": horse["_id"]},
         update,
