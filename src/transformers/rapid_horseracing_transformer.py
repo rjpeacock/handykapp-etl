@@ -1,13 +1,13 @@
 # To allow running as a script
+import logging
+import operator
+import re
 import sys
 from pathlib import Path
 
 from helpers import horse_name_to_pre_mongo_horse
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
-
-import operator
-import re
 
 import pendulum
 import petl  # type: ignore
@@ -18,6 +18,7 @@ from horsetalk import (
     HorseAge,
     Horselength,
     RaceWeight,
+    Surface,
 )
 from peak_utility.names.corrections import eirify, scotify
 
@@ -26,6 +27,19 @@ from transformers.parsers import (
     parse_code,
     parse_obstacle,
 )
+
+
+def infer_surface(going_description: str) -> str:
+    try:
+        going = (
+            next(iter(Going.multiparse(going_description).values()))
+            if "COURSE" in going_description.upper()
+            else Going(going_description)
+        )
+        return going.surface.name.title().replace("_", " ")
+    except Exception:
+        logging.warning(f"Failed to parse going description: {going_description}")
+        return Surface.TURF.name.title()  # Default to turf if parsing fails
 
 
 def standardise_name(name: str) -> str:
@@ -145,14 +159,8 @@ def transform_results(record: RapidRecord) -> list[PreMongoRace]:
         .addfield(
             "surface",
             lambda rec: (
-                (
-                    next(iter(Going.multiparse(x).values()))
-                    if "COURSE" in x.upper()
-                    else Going(x)
-                )
-                .surface.name.title()
-                .replace("_", " ")
-                if (x := rec["going_description"])
+                infer_surface(rec["going_description"])
+                if rec["going_description"]
                 else None
             ),
         )
