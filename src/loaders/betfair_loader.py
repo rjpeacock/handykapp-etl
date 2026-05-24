@@ -99,18 +99,16 @@ def load_betfair_prices(
                 except Exception:
                     continue
                 reader = csv.DictReader(content.decode("utf-8").splitlines())
-                if market_type == "win":
-                    records = []
-                    for row in reader:
+                records = []
+                for row in reader:
+                    row = {k.upper(): v for k, v in row.items()}
+                    if market_type == "win":
                         flat = is_flat_race(row["EVENT_NAME"])
                         flat_cache[row["MENU_HINT"], row["EVENT_DT"]] = flat
                         if flat:
                             records.append(betfair_price_transformer(row))
-                else:
-                    records = [
-                        betfair_price_transformer(row) for row in reader
-                        if flat_cache.get((row["MENU_HINT"], row["EVENT_DT"]))
-                    ]
+                    elif flat_cache.get((row["MENU_HINT"], row["EVENT_DT"])):
+                        records.append(betfair_price_transformer(row))
                 for record in records:
                     record.country = country
                     record.market_type = market_type
