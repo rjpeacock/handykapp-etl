@@ -1,6 +1,7 @@
 from collections.abc import Generator
 
 from horsetalk import RaceDistance
+from peak_utility.listish import compact
 from prefect import get_run_logger
 
 from clients import mongo_client as client
@@ -17,7 +18,7 @@ def _apply_result_to_race(found_race, horse, run, pp, logger):
     result = transform_run(run)
     going_assessment = result.pop("going_assessment")
     jockey = result.pop("jockey")
-    update = {"$set": {**{f"runners.$.{k}": v for k, v in result.items()}}}
+    update = {"$set": {**{f"runners.$.{k}": v for k, v in compact(result).items()}}}
     if "going_assessment" not in found_race:
         update["$set"]["going_assessment"] = going_assessment
     db.races.update_one(
