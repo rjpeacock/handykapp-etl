@@ -273,6 +273,7 @@ DECIMAL_FIELDS = {
 
 
 def betfair_price_transformer(row: dict) -> BetfairPriceRecord:
+    row = {k.upper(): v for k, v in row.items()}
     for key in DECIMAL_FIELDS:
         if row.get(key) == "":
             row[key] = None
