@@ -78,8 +78,9 @@ def nuclear_reload():
     drop_database()
     spec_database()
     load_racecourses()
-    switch_date = pendulum.parse(settings["app"]["switch_date"]).date()  # type: ignore[attr-defined]
-    load_rapid_horseracing_entries(source="results", until_date=switch_date)
+    # switch_date = pendulum.parse(settings["app"]["switch_date"]).date()  # type: ignore[attr-defined]
+    # load_rapid_horseracing_entries(source="results", until_date=switch_date)
+    load_rapid_horseracing_entries(source="results")
     load_theracingapi_data()
     load_bha_data()
     load_formdata()
