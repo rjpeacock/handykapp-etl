@@ -77,7 +77,7 @@ def extract_racecards(date):  # date - YYYY-MM-DD
 @task(tags=["Rapid"])
 def get_next_racecard_date():
     start_date = pendulum.parse("2020-01-01")
-    end_date = pendulum.now()
+    end_date = pendulum.now("UTC")
     test_date = start_date
 
     files = list(SpacesClient.get_files(RACECARDS_DESTINATION))
@@ -164,7 +164,7 @@ def update_results_to_do_list():
 
     content = json.dumps(
         {
-            "last_checked": str(pendulum.now()),
+            "last_checked": str(pendulum.now("UTC")),
             "results_to_do": [
                 race_id for race_id in to_do_race_ids if race_id not in done_race_ids
             ],

@@ -59,7 +59,7 @@ def fetch_content(url, params=None, headers=None):
 
 
 def get_last_occurrence_of(weekday):
-    return pendulum.now().add(days=1).previous(weekday).date()
+    return pendulum.now("UTC").add(days=1).previous(weekday).date()
 
 
 def log_validation_problem(problem):

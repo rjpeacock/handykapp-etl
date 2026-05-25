@@ -31,7 +31,7 @@ db = client.handykapp
     on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)]
 )
 def load_rapid_horseracing_entries(
-    *, source: str, until_date: pendulum.Date = pendulum.now().date()
+    *, source: str, until_date: pendulum.Date = pendulum.now("UTC").date()
 ):
     logger = get_run_logger()
     logger.info(f"Starting rapid_horseracing entries loader, sourcing from {source}")
