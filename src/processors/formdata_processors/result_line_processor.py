@@ -124,10 +124,14 @@ def result_line_processor() -> Generator[None, tuple[dict, FormdataRun], None]:
                     )
                     continue
                 race = candidates[0]
-                db.races.update_one(
-                    {"_id": race["_id"]},
-                    {"$addToSet": {"runners": {"horse": horse["_id"]}}},
-                )
+                if not any(
+                    r.get("horse") == horse["_id"]
+                    for r in race.get("runners", [])
+                ):
+                    db.races.update_one(
+                        {"_id": race["_id"]},
+                        {"$addToSet": {"runners": {"horse": horse["_id"]}}},
+                    )
                 found_race = db.races.find_one(
                     {"_id": race["_id"], "runners.horse": horse["_id"]},
                 )

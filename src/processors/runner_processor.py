@@ -58,7 +58,18 @@ def collect_people(
 
 def flush_races(race_updates: dict, logger: Any):
     for rid, runners in race_updates.items():
-        db.races.update_one({"_id": rid}, {"$push": {"runners": {"$each": runners}}})
+        race = db.races.find_one({"_id": rid}, {"runners.horse": 1})
+        existing_horses = {
+            r["horse"] for r in race.get("runners", [])
+        } if race else set()
+        new_runners = [
+            r for r in runners if r.get("horse") not in existing_horses
+        ]
+        if new_runners:
+            db.races.update_one(
+                {"_id": rid},
+                {"$push": {"runners": {"$each": new_runners}}},
+            )
     logger.debug(f"Updated {len(race_updates)} races with runners")
 
 
