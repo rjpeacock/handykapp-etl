@@ -3,8 +3,8 @@ import logging
 import pendulum
 import pytest
 
-from models.betfair_price_record import BetfairPriceRecord
 from loaders.betfair_loader import generate_url, is_flat_race
+from models.betfair_price_record import BetfairPriceRecord
 
 
 @pytest.mark.parametrize(

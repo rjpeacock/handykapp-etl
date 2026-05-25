@@ -1,7 +1,5 @@
-import pytest
-import importlib
 
-from processors.runner_processor import make_runner_dict, collect_people
+from processors.runner_processor import collect_people, make_runner_dict
 
 
 def test_make_runner_dict(mocker):

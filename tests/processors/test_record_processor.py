@@ -1,4 +1,3 @@
-import pytest
 
 from processors.record_processor import transform_single_record
 

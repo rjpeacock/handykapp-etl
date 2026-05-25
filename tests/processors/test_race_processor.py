@@ -1,5 +1,3 @@
-import pytest
-import importlib
 from pendulum import DateTime
 
 from processors.race_processor import make_update_dictionary

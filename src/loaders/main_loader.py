@@ -6,7 +6,6 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from pathlib import Path
 
-import pendulum
 import tomllib
 from prefect import flow, task
 from pymongo import ASCENDING as ASC
