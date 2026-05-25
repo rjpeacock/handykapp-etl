@@ -128,7 +128,7 @@ def result_line_processor() -> Generator[None, tuple[dict, FormdataRun], None]:
             if not found_race:
                 candidates = _find_candidate_race(racecourse_id, run)
                 if len(candidates) != 1:
-                    logger.warning(
+                    logger.debug(
                         f"No race found for {horse['_id']} at "
                         f"{run.course} on {run.date}"
                     )
