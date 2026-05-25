@@ -12,6 +12,7 @@ from pymongo.errors import DuplicateKeyError
 from clients import mongo_client as client
 from clients.mongo_client import get_horse
 from models import PreMongoHorse
+from utilities.race_duplicates import find_duplicate_horses, resolve_duplicates
 
 db = client.handykapp
 
@@ -124,6 +125,37 @@ def list_races(course, date):
             f"{race.get('distance_description', '?'):10s}  "
             f"{race.get('title', '?')}"
         )
+
+
+@cli.command()
+@click.option(
+    "--apply", is_flag=True, help="Actually fix duplicates (default is dry-run)"
+)
+def fix_duplicates(apply):
+    """Find and fix duplicate horse entries in race runners."""
+    msg = "and fixing" if apply else "(dry-run)"
+    click.echo(f"Scanning for duplicate horse entries {msg}...")
+    results = find_duplicate_horses(db.races)
+
+    if not results:
+        click.echo("No duplicates found.")
+        return
+
+    total = 0
+    for r in results:
+        race_id = r["_id"]
+        dup_count = (
+            resolve_duplicates(db.races, race_id)
+            if apply
+            else sum(d["count"] - 1 for d in r["duplicates"])
+        )
+        click.echo(f"  Race {race_id}: {dup_count} duplicate(s)")
+        total += dup_count
+
+    action = "Removed" if apply else "Would remove"
+    click.echo(f"\n{action} {total} duplicate entries across {len(results)} races.")
+    if not apply:
+        click.echo("Run with --apply to fix.")
 
 
 if __name__ == "__main__":
