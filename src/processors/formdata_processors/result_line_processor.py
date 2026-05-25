@@ -19,6 +19,7 @@ def _apply_result_to_race(found_race, horse, run, pp, logger):
     going_assessment = result.pop("going_assessment")
     surface = result.pop("surface")
     jockey = result.pop("jockey")
+    headgear = result.pop("headgear")
     update = {"$set": {**{f"runners.$.{k}": v for k, v in compact(result).items()}}}
     if "going_assessment" not in found_race:
         update["$set"]["going_assessment"] = going_assessment
@@ -27,6 +28,15 @@ def _apply_result_to_race(found_race, horse, run, pp, logger):
         {"_id": race_id, "runners.horse": horse["_id"]},
         update,
     )
+    if headgear:
+        db.races.update_one(
+            {
+                "_id": race_id,
+                "runners.horse": horse["_id"],
+                "runners.headgear": {"$exists": False},
+            },
+            {"$set": {"runners.$.headgear": headgear}},
+        )
     pp.send(
         (
             PreMongoPerson(
