@@ -1,10 +1,9 @@
-import pytest
 from pymongo.errors import DuplicateKeyError
 
 from models import PreMongoPerson
 from processors.person_processor import (
-    preload_person_cache,
     person_processor,
+    preload_person_cache,
 )
 
 

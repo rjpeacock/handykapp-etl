@@ -1,4 +1,3 @@
-import pytest
 from datetime import datetime, timezone
 
 from src.helpers.loads_tracker import get_last_load, update_load

@@ -1,4 +1,3 @@
-import pytest
 
 from models import PreMongoHorse
 from models.mongo_horse import MongoOfficialRatings

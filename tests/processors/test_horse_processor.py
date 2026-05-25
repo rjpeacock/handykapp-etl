@@ -1,11 +1,10 @@
-import pytest
 from pymongo.errors import DuplicateKeyError
 
 from models import PreMongoHorse
 from processors.horse_processor import (
-    make_horse_update_dictionary,
-    make_horse_insert_dictionary,
     horse_processor,
+    make_horse_insert_dictionary,
+    make_horse_update_dictionary,
 )
 
 
