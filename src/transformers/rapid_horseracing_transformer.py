@@ -39,7 +39,7 @@ def infer_surface(going_description: str) -> str:
         return going.surface.name.title().replace("_", " ")
     except Exception:
         logging.warning(f"Failed to parse going description: {going_description}")
-        return Surface.TURF.name.title()  # Default to turf if parsing fails
+        return "Turf"  # Default to turf if parsing fails
 
 
 def standardise_name(name: str) -> str:
