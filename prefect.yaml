@@ -48,7 +48,7 @@ deployments:
       job_variables:
         image: peaky76/prefect-poetry-peaky:latest
     schedule:
-      cron: 0 2 * * *
+      cron: 0 8 * * *
       timezone: UTC
       day_or: true
   - name: nuclear_reload
@@ -74,6 +74,6 @@ deployments:
       job_variables:
         image: peaky76/prefect-poetry-peaky:latest
     schedule:
-      cron: 0 2 * * *
+      cron: 0 4 * * *
       timezone: UTC
       day_or: true
