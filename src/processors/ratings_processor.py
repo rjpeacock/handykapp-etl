@@ -52,6 +52,10 @@ def ratings_processor() -> Generator[None, PreMongoHorse, None]:
                 logger.debug(f"Processed {len(bulk_operations)} bulk horse operations")
                 bulk_operations = []
 
+            total = updated_count + skipped_count
+            if total % 1000 == 0:
+                logger.info(f"Ratings processor: {updated_count} updated, {skipped_count} skipped ({total} total)")
+
     except GeneratorExit:
         # Process any remaining bulk operations
         if bulk_operations:

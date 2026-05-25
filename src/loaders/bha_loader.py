@@ -96,6 +96,9 @@ def load_bha_data():
     header = [convert_header_to_field_name(col) for col in rows[0]]
     record_count = 0
 
+    from time import time
+
+    start = time()
     for data_row in rows[1:]:
         row_dict = csv_row_to_dict(header, data_row)
         try:
@@ -110,6 +113,10 @@ def load_bha_data():
             record_count += 1
         except Exception as e:
             logger.error(f"Unable to process BHA ratings for {record.name}: {e}")
+
+        if record_count % 1000 == 0:
+            elapsed = time() - start
+            logger.info(f"Processed {record_count}/{len(rows) - 1} rows ({elapsed:.0f}s elapsed)")
 
     r.close()
 
