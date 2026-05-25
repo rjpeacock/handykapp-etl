@@ -37,7 +37,7 @@ def build_datetime(date_str: str, time_str: str) -> str:
 
 
 def transform_horse(
-    runner: TheRacingApiRunner, race_date: pendulum.DateTime = pendulum.now()
+    runner: TheRacingApiRunner, race_date: pendulum.DateTime = pendulum.now("UTC")
 ) -> PreMongoRunner:
     data = petl.fromdicts([runner.model_dump()])
 

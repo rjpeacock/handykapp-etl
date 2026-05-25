@@ -44,7 +44,7 @@ def extract_racecards(day="tomorrow", region_codes=["gb", "ire"]):
     params = {"day": day, "region_codes": region_codes}
 
     content = fetch_content(source, params=params, headers=headers)
-    date_str = pendulum.now().add(days=1).format("YYYYMMDD")
+    date_str = pendulum.now("UTC").add(days=1).format("YYYYMMDD")
     filename = f"{DESTINATION}racecards/theracingapi_racecards_{date_str}.json"
     SpacesClient.write_file(content, filename)
 

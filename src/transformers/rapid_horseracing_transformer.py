@@ -63,7 +63,7 @@ def standardise_name(name: str) -> str:
 
 def transform_horse(
     runner: RapidRunner,
-    race_date: pendulum.DateTime = pendulum.now(),
+    race_date: pendulum.DateTime = pendulum.now("UTC"),
     finishing_time: str | None = None,
 ) -> PreMongoRunner:
     data = petl.fromdicts([runner.model_dump()])
