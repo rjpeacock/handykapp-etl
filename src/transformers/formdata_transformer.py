@@ -382,6 +382,11 @@ FORMDATA_AW_GOINGS = {
     "f": "Fast",
 }
 
+FORMDATA_HEADGEAR = {
+    "b": "Blinkers",
+    "t": "Tongue Tie",
+}
+
 
 def transform_run(run: FormdataRun) -> dict:
     data = petl.fromdicts([run.model_dump()])
@@ -392,6 +397,7 @@ def transform_run(run: FormdataRun) -> dict:
                 "weight": lambda x: RaceWeight(x).lb,
                 "beaten_distance": lambda x: float(Horselength(x)) if x else None,
                 "jockey": lambda x: adjust_rr_name(x),
+                "headgear": lambda x: FORMDATA_HEADGEAR.get(x) if x else None,
             },
         )
         .rename({"weight": "lbs_carried"})
