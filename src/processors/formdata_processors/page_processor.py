@@ -21,6 +21,7 @@ def page_processor():
                 .replace(f"{chr(32)}{chr(25)}", "'")  # Space + apostrophe
                 .replace(chr(25), "'")  # Regular apostrophe
                 .replace(chr(65533), "'")  # Replacement character
+                .replace(chr(0), "'")  # Null byte → apostrophe
                 .split("\n")
             )
             for word in words:
