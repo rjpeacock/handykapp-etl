@@ -73,6 +73,10 @@ def transform_horse(
             if (x := Gender[rec["sex"]]) == Sex.MALE and x.has_testes  # type: ignore[misc]
             else None,
         )
+        .addfield(
+            "non_runner",
+            lambda rec: rec["saddlecloth"] == "NR",
+        )
         .convert(
             {
                 "name": lambda x: x.upper(),
@@ -81,7 +85,7 @@ def transform_horse(
                 "colour": lambda x: CoatColour[x].name.title(),  # type: ignore
                 "sire": lambda x: horse_name_to_pre_mongo_horse(x, sex="M"),
                 "damsire": lambda x: horse_name_to_pre_mongo_horse(x, sex="M"),
-                "saddlecloth": int,
+                "saddlecloth": lambda x: int(x) if x != "NR" else None,
                 "draw": lambda x: int(x) if x != "" else None,
                 "lbs_carried": lambda x: int(x) if x != "" else None,
                 "headgear": lambda x: Headgear[x].name.title() if x else None,  # type: ignore

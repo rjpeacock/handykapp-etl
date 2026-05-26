@@ -161,6 +161,7 @@ def test_transform_horse_returns_correct_output_when_professional_jockey(
         headgear=None,
         lbs_carried=141,
         official_rating=76,
+        non_runner=False,
     )
     actual = transform_horse(horse_1_data, pendulum.parse("2023-10-03"))
     assert actual == expected
@@ -191,6 +192,7 @@ def test_transform_horse_returns_correct_output_when_apprentice_jockey(
         headgear="Blinkers",
         lbs_carried=141,
         official_rating=76,
+        non_runner=False,
     )
     actual = transform_horse(horse_2_data, pendulum.parse("2023-10-03"))
     assert actual == expected
@@ -220,6 +222,7 @@ def test_transform_horse_returns_correct_output_when_entire(horse_3_data, mocker
         headgear=None,
         lbs_carried=130,
         official_rating=106,
+        non_runner=False,
     )
     actual = transform_horse(horse_3_data, pendulum.parse("2023-10-03"))
     assert actual == expected
@@ -252,9 +255,40 @@ def test_transform_horse_returns_correct_output_when_trainer_is_from_ireland(
         headgear=None,
         lbs_carried=130,
         official_rating=106,
+        non_runner=False,
     )
     actual = transform_horse(horse_3_data, pendulum.parse("2023-10-03"))
     assert actual == expected
+
+
+def test_transform_horse_with_nr_saddlecloth_sets_non_runner_true(mocker):
+    mocker.patch("pendulum.now", return_value=pendulum.parse("2023-10-03"))
+    nr_horse = TheRacingApiRunner(
+        **{
+            "horse": "Non Runner",
+            "age": "5",
+            "sex": "gelding",
+            "sex_code": "G",
+            "colour": "b",
+            "region": "GB",
+            "dam": "Some Dam",
+            "sire": "Some Sire",
+            "damsire": "Some Damsire",
+            "trainer": "A Trainer",
+            "owner": "An Owner",
+            "number": "NR",
+            "draw": "",
+            "headgear": "",
+            "lbs": "",
+            "ofr": "-",
+            "jockey": "A Jockey",
+            "last_run": "",
+            "form": None,
+        }
+    )
+    actual = transform_horse(nr_horse, pendulum.parse("2023-10-03"))
+    assert actual.non_runner is True
+    assert actual.saddlecloth is None
 
 
 def test_transform_races_returns_correct_output(racecard_data):
