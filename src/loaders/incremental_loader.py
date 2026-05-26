@@ -6,8 +6,10 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import pendulum
 import tomllib
-from prefect import flow
+from prefect import flow, get_run_logger, task
 
+from clients import mongo_client as client
+from cli import _mark_non_runners
 from helpers.alert_handlers import failure_handler
 
 from .betfair_loader import load_betfair_prices
@@ -19,6 +21,16 @@ from .theracingapi_loader import load_theracingapi_data
 with Path("settings.toml").open("rb") as f:
     settings = tomllib.load(f)
 
+db = client.handykapp
+
+
+@task
+def mark_non_runners(set_position: bool = False):
+    total, race_ids = _mark_non_runners(db, set_position=set_position)
+    if total:
+        logger = get_run_logger()
+        logger.info(f"Marked {total} non-runner(s) across {len(race_ids)} race(s).")
+
 
 @flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
 def incremental_load():
@@ -28,6 +40,7 @@ def incremental_load():
     load_bha_data()
     load_formdata()
     load_betfair_prices()
+    mark_non_runners(set_position=True)
 
 
 if __name__ == "__main__":

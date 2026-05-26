@@ -7,7 +7,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from pathlib import Path
 
 import tomllib
-from prefect import flow, task
+from prefect import flow, get_run_logger, task
 from pymongo import ASCENDING as ASC
 from pymongo import DESCENDING as DESC
 
@@ -24,6 +24,7 @@ from .formdata_loader import load_formdata
 from .racecourse_loader import load_racecourses
 from .rapid_horseracing_loader import load_rapid_horseracing_entries
 from .theracingapi_loader import load_theracingapi_data
+from cli import _mark_non_runners
 
 db = client.handykapp
 
@@ -70,6 +71,14 @@ def spec_database():
     db.people.create_index({"references.$**": 1})
 
 
+@task
+def mark_non_runners(set_position: bool = False):
+    total, race_ids = _mark_non_runners(db, set_position=set_position)
+    if total:
+        logger = get_run_logger()
+        logger.info(f"Marked {total} non-runner(s) across {len(race_ids)} race(s).")
+
+
 @flow(
     on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)]
 )
@@ -84,6 +93,7 @@ def nuclear_reload():
     load_bha_data()
     load_formdata()
     load_betfair_prices()
+    mark_non_runners(set_position=True)
 
 
 if __name__ == "__main__":
