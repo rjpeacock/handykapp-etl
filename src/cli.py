@@ -158,5 +158,59 @@ def fix_duplicates(apply):
         click.echo("Run with --apply to fix.")
 
 
+@cli.command()
+@click.option("--set-position", is_flag=True, help="Also set finishing_position to 'N'")
+@click.option("--dry-run", is_flag=True, help="Report what would be changed without writing")
+@click.option("--limit", type=int, default=None, help="Maximum number of races to process")
+def mark_non_runners(set_position, dry_run, limit):
+    """Find and mark non-runners in races with loaded results.
+
+    Identifies runners without a finishing position in races where at least
+    one runner has a position (i.e., results have been loaded). These horses
+    were declared but did not run.
+    """
+    races = db.races.find(
+        {"runners": {"$elemMatch": {"finishing_position": {"$ne": None}}}},
+        {"runners": 1},
+    ).limit(limit or 0)
+
+    race_ids = []
+    total_runners = 0
+
+    for race in races:
+        affected = [
+            r for r in race.get("runners", [])
+            if r.get("finishing_position") is None
+            and not r.get("non_runner")
+        ]
+        if affected:
+            race_ids.append(race["_id"])
+            total_runners += len(affected)
+
+    if not race_ids:
+        click.echo("No non-runners found.")
+        return
+
+    click.echo(f"Found {total_runners} non-runner(s) across {len(race_ids)} race(s).")
+
+    if dry_run:
+        return
+
+    modified_count = 0
+    for race_id in race_ids:
+        race = db.races.find_one({"_id": race_id}, {"runners": 1})
+        for i, runner in enumerate(race.get("runners", [])):
+            if runner.get("finishing_position") is None and not runner.get("non_runner"):
+                update = {"$set": {f"runners.{i}.non_runner": True}}
+                if set_position:
+                    update["$set"][f"runners.{i}.finishing_position"] = "N"
+                db.races.update_one({"_id": race_id}, update)
+                modified_count += 1
+
+    click.echo(
+        f"Marked {modified_count} non-runner(s) across {len(race_ids)} race(s)."
+    )
+
+
 if __name__ == "__main__":
     cli()
