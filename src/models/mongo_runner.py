@@ -38,3 +38,4 @@ class MongoRunner(BaseModel):
     time: Duration | None = None
     prices: Prices | None = None
     ratings: dict[str, int] | None = None
+    non_runner: bool | None = None

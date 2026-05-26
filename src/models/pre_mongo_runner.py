@@ -9,3 +9,4 @@ class PreMongoRunner(PreMongoEntry):
     beaten_distance: float | None = None
     time: Duration | None = None
     sp: str | None = None
+    non_runner: bool | None = None
