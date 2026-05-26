@@ -97,6 +97,7 @@ def expected_runner(expected_sire, expected_dam):
         official_rating=None,
         sp="8",
         time=None,
+        non_runner=False,
     )
 
 
@@ -132,6 +133,17 @@ def test_standardise_name_irish_obrien_converted_to_o_brien():
 
 def test_standardise_name_non_irish_owen_not_converted():
     assert standardise_name("Owen") == "Owen"
+
+
+def test_transform_horse_propagates_non_runner_true(horse_data):
+    horse_data.non_runner = "1"
+    actual = transform_horse(horse_data, pendulum.parse("2023-03-08"))
+    assert actual.non_runner is True
+
+
+def test_transform_horse_propagates_non_runner_false(horse_data):
+    actual = transform_horse(horse_data, pendulum.parse("2023-03-08"))
+    assert actual.non_runner is False
 
 
 def test_transform_horse_returns_correct_output(horse_data, expected_runner):
