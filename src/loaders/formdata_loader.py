@@ -35,7 +35,7 @@ def load_formdata():
 
     last_load = get_last_load(db, SOURCE_NAME)
     last_processed = last_load.last_processed if last_load else None
-    files = get_formdatas(code=RacingCode.FLAT, after_year=20, for_refresh=True)
+    files = get_formdatas(code=RacingCode.FLAT, after_year=19, for_refresh=True)
 
     if last_processed:
         last_date = pendulum.from_format(last_processed, "YYYY-MM-DD").date()
