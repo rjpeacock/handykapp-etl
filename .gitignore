@@ -131,6 +131,7 @@ dmypy.json
 # Custom
 files/
 deployments/
+.skylos/
 
 # Data
 *.pdf
