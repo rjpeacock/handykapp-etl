@@ -4,8 +4,6 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from pathlib import Path
-
 import tomllib
 from prefect import flow, get_run_logger, task
 from pymongo import ASCENDING as ASC
@@ -24,7 +22,7 @@ from .formdata_loader import load_formdata
 from .racecourse_loader import load_racecourses
 from .rapid_horseracing_loader import load_rapid_horseracing_entries
 from .theracingapi_loader import load_theracingapi_data
-from cli import _mark_non_runners
+from utilities.non_runners import mark_non_runners
 
 db = client.handykapp
 
@@ -69,14 +67,6 @@ def spec_database():
     db.races.create_index([("datetime", DESC)])
     db.loads.create_index("source", unique=True)
     db.people.create_index({"references.$**": 1})
-
-
-@task
-def mark_non_runners(set_position: bool = False):
-    total, race_ids = _mark_non_runners(db, set_position=set_position)
-    if total:
-        logger = get_run_logger()
-        logger.info(f"Marked {total} non-runner(s) across {len(race_ids)} race(s).")
 
 
 @flow(

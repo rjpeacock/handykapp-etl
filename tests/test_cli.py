@@ -4,7 +4,7 @@ from cli import cli
 
 
 def test_mark_non_runners_none_found(mock_db, mocker):
-    mocker.patch("cli.db", mock_db)
+    mocker.patch("utilities.non_runners.db", mock_db)
     mock_db.races.insert_one({
         "runners": [
             {"horse": "h1", "finishing_position": "1"},
@@ -20,7 +20,7 @@ def test_mark_non_runners_none_found(mock_db, mocker):
 
 
 def test_mark_non_runners_dry_run(mock_db, mocker):
-    mocker.patch("cli.db", mock_db)
+    mocker.patch("utilities.non_runners.db", mock_db)
     mock_db.races.insert_one({
         "runners": [
             {"horse": "h1", "finishing_position": "1"},
@@ -41,7 +41,7 @@ def test_mark_non_runners_dry_run(mock_db, mocker):
 
 
 def test_mark_non_runners_updates_db(mock_db, mocker):
-    mocker.patch("cli.db", mock_db)
+    mocker.patch("utilities.non_runners.db", mock_db)
     mock_db.races.insert_one({
         "runners": [
             {"horse": "h1", "finishing_position": "1"},
@@ -62,7 +62,7 @@ def test_mark_non_runners_updates_db(mock_db, mocker):
 
 
 def test_mark_non_runners_with_set_position(mock_db, mocker):
-    mocker.patch("cli.db", mock_db)
+    mocker.patch("utilities.non_runners.db", mock_db)
     mock_db.races.insert_one({
         "runners": [
             {"horse": "h1", "finishing_position": "1"},
@@ -83,7 +83,7 @@ def test_mark_non_runners_with_set_position(mock_db, mocker):
 
 
 def test_mark_non_runners_skips_already_tagged(mock_db, mocker):
-    mocker.patch("cli.db", mock_db)
+    mocker.patch("utilities.non_runners.db", mock_db)
     mock_db.races.insert_one({
         "runners": [
             {"horse": "h1", "finishing_position": "1"},
@@ -99,7 +99,7 @@ def test_mark_non_runners_skips_already_tagged(mock_db, mocker):
 
 
 def test_mark_non_runners_skips_races_without_results(mock_db, mocker):
-    mocker.patch("cli.db", mock_db)
+    mocker.patch("utilities.non_runners.db", mock_db)
     mock_db.races.insert_one({
         "runners": [
             {"horse": "h1"},
@@ -115,7 +115,7 @@ def test_mark_non_runners_skips_races_without_results(mock_db, mocker):
 
 
 def test_mark_non_runners_limit(mock_db, mocker):
-    mocker.patch("cli.db", mock_db)
+    mocker.patch("utilities.non_runners.db", mock_db)
     mock_db.races.insert_many([
         {
             "runners": [

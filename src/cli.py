@@ -12,6 +12,7 @@ from pymongo.errors import DuplicateKeyError
 from clients import mongo_client as client
 from clients.mongo_client import get_horse
 from models import PreMongoHorse
+from utilities.non_runners import mark_non_runners as mark_non_runners_util
 from utilities.race_duplicates import find_duplicate_horses, resolve_duplicates
 
 db = client.handykapp
@@ -169,8 +170,9 @@ def mark_non_runners(set_position, dry_run, limit):
     one runner has a position (i.e., results have been loaded). These horses
     were declared but did not run.
     """
-    logger = click.echo if dry_run else None
-    total, modified = _mark_non_runners(db, set_position, limit, logger)
+    total, modified = mark_non_runners_util(
+        set_position=set_position, limit=limit, dry_run=dry_run
+    )
     if total == 0:
         click.echo("No non-runners found.")
         return
@@ -178,52 +180,6 @@ def mark_non_runners(set_position, dry_run, limit):
         click.echo(f"Found {total} non-runner(s) across {len(modified)} race(s).")
     else:
         click.echo(f"Marked {total} non-runner(s) across {len(modified)} race(s).")
-
-
-def _mark_non_runners(
-    database,
-    set_position: bool = False,
-    limit: int | None = None,
-    logger=None,
-) -> tuple[int, list]:
-    """Core logic: find and mark non-runners. Returns (total_marked, race_ids)."""
-    races = database.races.find(
-        {"runners": {"$elemMatch": {"finishing_position": {"$ne": None}}}},
-        {"runners": 1},
-    ).limit(limit or 0)
-
-    race_ids = []
-    total_runners = 0
-
-    for race in races:
-        affected = [
-            r for r in race.get("runners", [])
-            if r.get("finishing_position") is None
-            and not r.get("non_runner")
-        ]
-        if affected:
-            race_ids.append(race["_id"])
-            total_runners += len(affected)
-
-    if not race_ids:
-        return 0, []
-
-    if logger:
-        logger(f"Found {total_runners} non-runner(s) across {len(race_ids)} race(s).")
-        return total_runners, race_ids
-
-    modified_count = 0
-    for race_id in race_ids:
-        race = database.races.find_one({"_id": race_id}, {"runners": 1})
-        for i, runner in enumerate(race.get("runners", [])):
-            if runner.get("finishing_position") is None and not runner.get("non_runner"):
-                update = {"$set": {f"runners.{i}.non_runner": True}}
-                if set_position:
-                    update["$set"][f"runners.{i}.finishing_position"] = "N"
-                database.races.update_one({"_id": race_id}, update)
-                modified_count += 1
-
-    return modified_count, race_ids
 
 
 if __name__ == "__main__":
