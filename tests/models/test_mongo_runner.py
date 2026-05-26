@@ -28,3 +28,21 @@ def test_mongo_runner_init_with_optional_fields():
         position="1",
         beaten_distance="0.5",
     )
+
+
+def test_mongo_runner_non_runner_defaults_to_none():
+    horse_id = PyObjectId(ObjectId())
+    runner = MongoRunner(horse=horse_id)
+    assert runner.non_runner is None
+
+
+def test_mongo_runner_with_non_runner_true():
+    horse_id = PyObjectId(ObjectId())
+    runner = MongoRunner(horse=horse_id, non_runner=True)
+    assert runner.non_runner is True
+
+
+def test_mongo_runner_with_non_runner_false():
+    horse_id = PyObjectId(ObjectId())
+    runner = MongoRunner(horse=horse_id, non_runner=False)
+    assert runner.non_runner is False
