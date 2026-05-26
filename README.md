@@ -1,5 +1,7 @@
 # handykapp-etl
 
+[![Skylos Grade](https://img.shields.io/badge/Skylos-A%2B%20%28100%29-brightgreen)](https://github.com/duriantaco/skylos)
+
 ETL pipeline to feed the handykapp horse racing analysis app
 Used in conjunction with Prefect orchestration tool
 
