@@ -8,8 +8,8 @@ import pendulum
 import tomllib
 from prefect import flow, get_run_logger, task
 
-from clients import mongo_client as client
 from cli import _mark_non_runners
+from clients import mongo_client as client
 from helpers.alert_handlers import failure_handler
 
 from .betfair_loader import load_betfair_prices
@@ -32,7 +32,9 @@ def mark_non_runners(set_position: bool = False):
         logger.info(f"Marked {total} non-runner(s) across {len(race_ids)} race(s).")
 
 
-@flow(on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)])
+@flow(
+    on_failure=[lambda flow, flow_run, state: failure_handler("Flow", flow.name, state)]
+)
 def incremental_load():
     switch_date = pendulum.parse(settings["app"]["switch_date"]).date()
     load_rapid_horseracing_entries(source="racecards")
