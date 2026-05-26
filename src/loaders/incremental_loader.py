@@ -6,11 +6,10 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import pendulum
 import tomllib
-from prefect import flow, get_run_logger, task
+from prefect import flow
 
-from utilities.non_runners import mark_non_runners
-from clients import mongo_client as client
 from helpers.alert_handlers import failure_handler
+from utilities.non_runners import mark_non_runners
 
 from .betfair_loader import load_betfair_prices
 from .bha_loader import load_bha_data
