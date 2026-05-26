@@ -33,6 +33,7 @@ def make_runner_dict(horse: PreMongoRunner, horse_id: PyObjectId) -> dict:
             "official_position": horse.official_position,
             "beaten_distance": horse.beaten_distance,
             "sp": horse.sp,
+            "non_runner": horse.non_runner,
         }
     )
 
