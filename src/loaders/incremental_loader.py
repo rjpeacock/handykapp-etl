@@ -8,7 +8,7 @@ import pendulum
 import tomllib
 from prefect import flow, get_run_logger, task
 
-from cli import _mark_non_runners
+from utilities.non_runners import mark_non_runners
 from clients import mongo_client as client
 from helpers.alert_handlers import failure_handler
 
@@ -20,16 +20,6 @@ from .theracingapi_loader import load_theracingapi_data
 
 with Path("settings.toml").open("rb") as f:
     settings = tomllib.load(f)
-
-db = client.handykapp
-
-
-@task
-def mark_non_runners(set_position: bool = False):
-    total, race_ids = _mark_non_runners(db, set_position=set_position)
-    if total:
-        logger = get_run_logger()
-        logger.info(f"Marked {total} non-runner(s) across {len(race_ids)} race(s).")
 
 
 @flow(
