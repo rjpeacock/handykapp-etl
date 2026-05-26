@@ -18,7 +18,6 @@ from horsetalk import (
     HorseAge,
     Horselength,
     RaceWeight,
-    Surface,
 )
 from peak_utility.names.corrections import eirify, scotify
 
