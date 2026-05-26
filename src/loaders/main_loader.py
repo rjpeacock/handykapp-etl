@@ -5,7 +5,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import tomllib
-from prefect import flow, get_run_logger, task
+from prefect import flow, task
 from pymongo import ASCENDING as ASC
 from pymongo import DESCENDING as DESC
 
@@ -16,13 +16,14 @@ from helpers.alert_handlers import failure_handler
 with Path("settings.toml").open("rb") as f:
     settings = tomllib.load(f)
 
+from utilities.non_runners import mark_non_runners
+
 from .betfair_loader import load_betfair_prices
 from .bha_loader import load_bha_data
 from .formdata_loader import load_formdata
 from .racecourse_loader import load_racecourses
 from .rapid_horseracing_loader import load_rapid_horseracing_entries
 from .theracingapi_loader import load_theracingapi_data
-from utilities.non_runners import mark_non_runners
 
 db = client.handykapp
 
