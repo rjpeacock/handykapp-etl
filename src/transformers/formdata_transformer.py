@@ -104,8 +104,8 @@ def create_horse(words: list[str], year: int) -> FormdataHorse | None:
 def create_run(words: list[str]) -> FormdataRun | None:
     logger = get_run_logger()
     try:
-        # Handle extra empty string at end of some lines
-        words = words if words[-1] != "" else words[:-1]
+        # Filter empty strings from old PDFs with sparse table formatting
+        words = [w for w in words if w]
 
         # Handle cases where words are insufficiently split
         words = " ".join(words).split(" ")
