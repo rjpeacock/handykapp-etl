@@ -1,4 +1,5 @@
 from prefect import get_run_logger
+from pymongo.errors import DuplicateKeyError
 
 # from pymongo import InsertOne, UpdateOne
 from clients import mongo_client as client
@@ -86,14 +87,35 @@ def entry_processor():
             found_horse = get_horse(horse_for_search)
 
             if not found_horse:
+                # WORKAROUND: Rare fallback for horses referenced by skeleton
+                # races (rapid entries) but missing from the horses collection.
+                # Creates a minimal document so formdata results can be attached.
+                # This is NOT the normal path — formdata should typically find
+                # horses already created by theracingapi / rapid pipelines.
                 logger.warning(
-                    f"Horse {horse.name} {horse.country} {horse.year} not found in db, skipping result"
+                    f"Horse {horse.name} {horse.country} {horse.year} not found in db, "
+                    f"creating minimal entry as fallback"
                 )
-                skipped_count += 1
-            else:
-                for run in horse.runs:
-                    rl.send((found_horse, run))
-                updated_count += 1
+                try:
+                    result = db.horses.insert_one({
+                        "name": horse.name,
+                        "country": horse.country,
+                        "year": horse.year,
+                    })
+                    found_horse = {"_id": result.inserted_id}
+                except DuplicateKeyError:
+                    found_horse = get_horse(horse_for_search)
+                    if not found_horse:
+                        logger.error(
+                            f"Horse {horse.name} {horse.country} {horse.year} "
+                            f"still not found after fallback insert attempt"
+                        )
+                        skipped_count += 1
+                        continue
+
+            for run in horse.runs:
+                rl.send((found_horse, run))
+            updated_count += 1
 
     except GeneratorExit:
         # Process remaining operations
