@@ -1,6 +1,7 @@
 import re
-from typing import Annotated, Literal
+from typing import Annotated
 
+from horsetalk import Gender  # type: ignore
 from pydantic import AfterValidator, BeforeValidator
 
 
@@ -54,5 +55,11 @@ Rating = Annotated[
     BeforeValidator(empty_string_to_none),
     AfterValidator(validate_rating),
 ]
-Sex = Literal["GELDING", "FILLY", "COLT"]
+def validate_sex(v: str) -> str:
+    if v.upper() not in {g.name for g in Gender}:
+        raise ValueError(f"Invalid sex: {v}")
+    return v.upper()
+
+
+Sex = Annotated[str, AfterValidator(validate_sex)]
 PerfFig = Annotated[str, AfterValidator(validate_perf_fig)]
