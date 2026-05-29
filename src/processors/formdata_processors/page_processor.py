@@ -18,7 +18,11 @@ def page_processor():
             # Replace non-ascii characters with apostrophes
             words = (
                 text.replace(f"{chr(10)}{chr(25)}", "'")  # Newline + apostrophe
+                .replace(f"{chr(10)}{chr(65533)}", "'")  # Newline + replacement char
+                .replace(f"{chr(10)}{chr(32)}{chr(25)}", "'")  # Newline + space + apostrophe
+                .replace(f"{chr(10)}{chr(32)}{chr(65533)}", "'")  # Newline + space + replacement char
                 .replace(f"{chr(32)}{chr(25)}", "'")  # Space + apostrophe
+                .replace(f"{chr(32)}{chr(65533)}", "'")  # Space + replacement char
                 .replace(chr(25), "'")  # Regular apostrophe
                 .replace(chr(65533), "'")  # Replacement character
                 .replace(chr(0), "'")  # Null byte → apostrophe
