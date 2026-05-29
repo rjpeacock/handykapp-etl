@@ -4,6 +4,7 @@ from horsetalk import RacingCode
 from models import FormdataRun
 from transformers.formdata_transformer import (
     adjust_rr_name,
+    create_run,
     extract_dist_going,
     extract_middle_details,
     extract_prize,
@@ -173,6 +174,32 @@ def test_extract_middle_details_when_position_includes_disqualification():
     }
 
     assert extract_middle_details("t3HDavies3d") == expected
+
+
+def test_create_run_filters_empty_strings(mocker):
+    mocker.patch("transformers.formdata_transformer.get_run_logger")
+    sparse_input = [
+        "29Jun19", "", "", "H", "", "9", "", "Che", "", "7", "",
+        "9-5", "", "", "JMitchell", "", "5", "", "", "3.8", "", "",
+        "90", "", "5.1M", "", "92", "", "",
+    ]
+    run = create_run(sparse_input)
+    assert run is not None
+    assert run.date == "2019-06-29"
+    assert run.race_type == "H"
+    assert run.win_prize == "9"
+    assert run.course == "Che"
+    assert run.number_of_runners == 7
+    assert run.weight == "9-5"
+    assert run.headgear is None
+    assert run.allowance == 0
+    assert run.jockey == "JMitchell"
+    assert run.position == "5"
+    assert run.beaten_distance == 3.8
+    assert run.time_rating == 90
+    assert run.distance == 5.1
+    assert run.going == "M"
+    assert run.form_rating == 92
 
 
 def test_extract_prize():
