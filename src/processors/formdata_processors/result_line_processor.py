@@ -80,7 +80,7 @@ def _find_candidate_race(racecourse_id, run):
         try:
             if RaceDistance(race.get("distance_description", "")) == target_distance:
                 matching.append(race)
-        except Exception:
+        except Exception:  # noqa: PERF203
             continue
 
     return matching
