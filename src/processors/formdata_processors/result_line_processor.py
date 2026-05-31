@@ -54,7 +54,6 @@ def _apply_result_to_race(found_race, horse, run, pp, logger):
 
 
 def _find_candidate_race(racecourse_id, run):
-    target_code = "Flat" if run.race_type == "FLAT" else "National Hunt"
     target_distance = RaceDistance(f"{run.distance}f")
 
     possible = list(
@@ -78,8 +77,6 @@ def _find_candidate_race(racecourse_id, run):
 
     matching = []
     for race in possible:
-        if race.get("code") != target_code:
-            continue
         try:
             if RaceDistance(race.get("distance_description", "")) == target_distance:
                 matching.append(race)
