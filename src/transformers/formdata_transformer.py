@@ -104,11 +104,8 @@ def create_horse(words: list[str], year: int) -> FormdataHorse | None:
 def create_run(words: list[str]) -> FormdataRun | None:
     logger = get_run_logger()
     try:
-        # Filter empty strings from old PDFs with sparse table formatting
-        words = [w for w in words if w]
-
-        # Handle cases where words are insufficiently split
-        words = " ".join(words).split(" ")
+        # Flatten multi-word elements and strip empties in one shot
+        words = " ".join(words).split()
 
         # Handle odd case of Phoenix Dawn (missing data)
         if len(words) == 10 and words[6:] == ["b", "RHavlin", "p", "p12"]:
