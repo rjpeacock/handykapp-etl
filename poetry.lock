@@ -2634,14 +2634,14 @@ test = ["time-machine (>=2.6.0,<3.0.0) ; implementation_name != \"pypy\""]
 
 [[package]]
 name = "petl"
-version = "1.7.17"
+version = "1.7.18"
 description = "A Python package for extracting, transforming and loading tables of data."
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7"
 groups = ["main"]
 files = [
-    {file = "petl-1.7.17-py3-none-any.whl", hash = "sha256:53785128bcdf46eb4472638ad572acc6d87cc83f80b567fed06ee4a947eea5d1"},
-    {file = "petl-1.7.17.tar.gz", hash = "sha256:802696187c2ef35894c4acf3c0ff9fecff6035cb335944c194416b9a18e8390b"},
+    {file = "petl-1.7.18-py3-none-any.whl", hash = "sha256:47b9634e9b02aa6aacf05dbf1ec84178294800e9072a21b532a530fa321d7cf9"},
+    {file = "petl-1.7.18.tar.gz", hash = "sha256:23041359505df550a932d6337ee9790ab40c1872c0294fba244585e4ae272593"},
 ]
 
 [package.extras]
