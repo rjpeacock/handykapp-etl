@@ -1,6 +1,11 @@
-from click.testing import CliRunner
+import pytest
 
-from cli import cli
+from utilities.non_runners import mark_non_runners
+
+
+@pytest.fixture(autouse=True)
+def mock_logger(mocker):
+    mocker.patch("utilities.non_runners.get_run_logger")
 
 
 def test_mark_non_runners_none_found(mock_db, mocker):
@@ -12,11 +17,10 @@ def test_mark_non_runners_none_found(mock_db, mocker):
         ],
     })
 
-    runner = CliRunner()
-    result = runner.invoke(cli, ["mark-non-runners"])
+    total, modified = mark_non_runners.fn()
 
-    assert result.exit_code == 0
-    assert "No non-runners found." in result.output
+    assert total == 0
+    assert modified == []
 
 
 def test_mark_non_runners_dry_run(mock_db, mocker):
@@ -28,12 +32,10 @@ def test_mark_non_runners_dry_run(mock_db, mocker):
         ],
     })
 
-    runner = CliRunner()
-    result = runner.invoke(cli, ["mark-non-runners", "--dry-run"])
+    total, modified = mark_non_runners.fn(dry_run=True)
 
-    assert result.exit_code == 0
-    assert "Found 1 non-runner(s)" in result.output
-    assert "dry" not in result.output.lower() or "Would" not in result.output
+    assert total == 1
+    assert len(modified) == 1
 
     race = mock_db.races.find_one()
     runner_h2 = next(r for r in race["runners"] if r["horse"] == "h2")
@@ -49,11 +51,10 @@ def test_mark_non_runners_updates_db(mock_db, mocker):
         ],
     })
 
-    runner = CliRunner()
-    result = runner.invoke(cli, ["mark-non-runners"])
+    total, modified = mark_non_runners.fn()
 
-    assert result.exit_code == 0
-    assert "Marked 1 non-runner(s) across 1 race(s)." in result.output
+    assert total == 1
+    assert len(modified) == 1
 
     race = mock_db.races.find_one()
     runner_h2 = next(r for r in race["runners"] if r["horse"] == "h2")
@@ -70,11 +71,10 @@ def test_mark_non_runners_with_set_position(mock_db, mocker):
         ],
     })
 
-    runner = CliRunner()
-    result = runner.invoke(cli, ["mark-non-runners", "--set-position"])
+    total, modified = mark_non_runners.fn(set_position=True)
 
-    assert result.exit_code == 0
-    assert "Marked 1 non-runner(s) across 1 race(s)." in result.output
+    assert total == 1
+    assert len(modified) == 1
 
     race = mock_db.races.find_one()
     runner_h2 = next(r for r in race["runners"] if r["horse"] == "h2")
@@ -91,11 +91,10 @@ def test_mark_non_runners_skips_already_tagged(mock_db, mocker):
         ],
     })
 
-    runner = CliRunner()
-    result = runner.invoke(cli, ["mark-non-runners"])
+    total, modified = mark_non_runners.fn()
 
-    assert result.exit_code == 0
-    assert "No non-runners found." in result.output
+    assert total == 0
+    assert modified == []
 
 
 def test_mark_non_runners_skips_races_without_results(mock_db, mocker):
@@ -107,11 +106,10 @@ def test_mark_non_runners_skips_races_without_results(mock_db, mocker):
         ],
     })
 
-    runner = CliRunner()
-    result = runner.invoke(cli, ["mark-non-runners"])
+    total, modified = mark_non_runners.fn()
 
-    assert result.exit_code == 0
-    assert "No non-runners found." in result.output
+    assert total == 0
+    assert modified == []
 
 
 def test_mark_non_runners_limit(mock_db, mocker):
@@ -131,8 +129,7 @@ def test_mark_non_runners_limit(mock_db, mocker):
         },
     ])
 
-    runner = CliRunner()
-    result = runner.invoke(cli, ["mark-non-runners", "--limit", "1"])
+    total, modified = mark_non_runners.fn(limit=1)
 
-    assert result.exit_code == 0
-    assert "Marked 1 non-runner(s) across 1 race(s)." in result.output
+    assert total == 1
+    assert len(modified) == 1
