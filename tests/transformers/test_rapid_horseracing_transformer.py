@@ -20,11 +20,11 @@ def horse_data():
             "id_horse": "123456",
             "jockey": "A Jockey",
             "trainer": "A Trainer",
-            "age": "3",
+            "age": 3,
             "weight": "10-0",
-            "number": "1",
-            "last_ran_days_ago": "1",
-            "non_runner": "0",
+            "number": 1,
+            "last_ran_days_ago": 1,
+            "non_runner": False,
             "form": "1-2-3",
             "position": "1",
             "distance_beaten": "1 1/2",
@@ -49,8 +49,8 @@ def result_data(horse_data):
             "distance": "1m2f",
             "age": "3",
             "going": "Soft (Good to Soft in places)",
-            "finished": "1",
-            "canceled": "0",
+            "finished": True,
+            "canceled": False,
             "finish_time": "",
             "prize": "\u00a32794",
             "class": "5",
@@ -136,7 +136,7 @@ def test_standardise_name_non_irish_owen_not_converted():
 
 
 def test_transform_horse_propagates_non_runner_true(horse_data):
-    horse_data.non_runner = "1"
+    horse_data.non_runner = True
     actual = transform_horse(horse_data, pendulum.parse("2023-03-08"))
     assert actual.non_runner is True
 
