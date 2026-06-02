@@ -1,3 +1,4 @@
+import re
 from collections.abc import Generator
 
 from horsetalk import RaceDistance
@@ -53,37 +54,48 @@ def _apply_result_to_race(found_race, horse, run, pp, logger):
     )
 
 
-def _find_candidate_race(racecourse_id, run):
-    target_distance = RaceDistance(f"{run.distance}f")
+def find_candidate_race(racecourse_id, run):
+    fd_dist = RaceDistance(f"{run.distance}f").furlongs
+    fd_prize_k = int(run.win_prize)
+    fd_is_hcap = "H" in run.race_type
 
-    possible = list(
-        db.races.find(
-            {
-                "racecourse": racecourse_id,
-                "$expr": {
-                    "$eq": [
-                        {
-                            "$dateToString": {
-                                "format": "%Y-%m-%d",
-                                "date": "$datetime",
-                            }
-                        },
-                        run.date,
-                    ]
-                },
-            }
-        )
-    )
-
-    matching = []
-    for race in possible:
+    for race in db.races.find(
+        {
+            "racecourse": racecourse_id,
+            "$expr": {
+                "$eq": [
+                    {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$datetime",
+                        }
+                    },
+                    run.date,
+                ]
+            },
+        }
+    ):
+        dist_str = race.get("distance_description", "")
+        if not dist_str:
+            continue
         try:
-            if RaceDistance(race.get("distance_description", "")) == target_distance:
-                matching.append(race)
-        except Exception:  # noqa: PERF203
+            skel_f = RaceDistance(dist_str).furlongs
+        except Exception:
+            continue
+        if abs(skel_f - fd_dist) > 0.5:
             continue
 
-    return matching
+        skel_raw = re.sub(r"[^\d]", "", race.get("prize", "") or "")
+        skel_prize_k = int(skel_raw) // 1000 if skel_raw else None
+        if fd_prize_k is not None and skel_prize_k is not None and fd_prize_k != skel_prize_k:
+            continue
+
+        if fd_is_hcap != race.get("is_handicap", False):
+            continue
+
+        return race
+
+    return None
 
 
 def result_line_processor() -> Generator[None, tuple[dict, FormdataRun], None]:
@@ -123,14 +135,13 @@ def result_line_processor() -> Generator[None, tuple[dict, FormdataRun], None]:
             )
 
             if not found_race:
-                candidates = _find_candidate_race(racecourse_id, run)
-                if len(candidates) != 1:
+                race = find_candidate_race(racecourse_id, run)
+                if not race:
                     logger.debug(
                         f"No race found for {horse['_id']} at "
                         f"{run.course} on {run.date}"
                     )
                     continue
-                race = candidates[0]
                 if not any(
                     r.get("horse") == horse["_id"]
                     for r in race.get("runners", [])
