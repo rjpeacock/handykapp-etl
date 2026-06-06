@@ -55,49 +55,37 @@ def update_horse_name_if_needed(horse: PreMongoHorse, result: dict) -> None:
 
 @cache_if_found(maxsize=20000)
 def get_horse(horse: PreMongoHorse) -> dict | None:
-    search = db.horses.find_one
-    base = {"name": horse.name, "country": horse.country, "year": horse.year}
-
-    result = search(base)
-    if result:
-        return result
-
-    result = search(compact(base) | {"name": horse.name, "sex": horse.sex})
-    if result:
-        return result
-
-    # Always apply apostrophe-flexible regex: formdata may omit apostrophes
-    # (e.g. "SOPHIAS" for "SOPHIA'S") while API sources include them. Without this,
-    # horses with names differing only by apostrophe silently fail to match races.
-    result = search(
-        base
-        | {
-            "name": {
-                "$regex": f"^{create_apostrophe_regex(horse.name)}$",
-                "$options": "i",
-            }
-        }
-    )
-
-    if result:
-        update_horse_name_if_needed(horse, result)
-        return result
-
+    results = find_horses_by_name(horse.name, horse.country, horse.year)
+    if results:
+        update_horse_name_if_needed(horse, results[0])
+        return results[0]
     return None
 
 
 def find_horses_by_name(name, country=None, year=None):
-    query = {
+    # Step 1: exact match on all provided fields
+    exact = {"name": name}
+    if country:
+        exact["country"] = country
+    if year is not None:
+        exact["year"] = year
+    if len(exact) > 1:
+        result = list(db.horses.find(exact))
+        if result:
+            return result
+
+    # Step 2: regex fallback (apostrophe-flexible, case-insensitive)
+    regex_query = {
         "name": {
             "$regex": f"^{create_apostrophe_regex(name)}$",
             "$options": "i",
         }
     }
     if country:
-        query["country"] = country
+        regex_query["country"] = country
     if year is not None:
-        query["year"] = year
-    return list(db.horses.find(query).sort("year", -1))
+        regex_query["year"] = year
+    return list(db.horses.find(regex_query).sort("year", -1))
 
 
 type NewmarketRacecourse = Literal["Newmarket July", "Newmarket Rowley"]
