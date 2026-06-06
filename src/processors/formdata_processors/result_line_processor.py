@@ -112,9 +112,9 @@ def find_candidate_race(racecourse_id, run):
             continue
 
         skel_age = _parse_db_age(race.get("age_restriction"))
-        if fd_age and skel_age != fd_age:
+        if fd_age and skel_age and skel_age != fd_age:
             continue
-        if skel_age in ("2", "3"):
+        if not fd_age and skel_age in ("2", "3"):
             continue
 
         candidates.append(race)
