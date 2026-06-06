@@ -211,17 +211,19 @@ def mark_non_runners(set_position, dry_run, limit):
 
 
 @cli.command()
-@click.option("--race-id", required=True, help="Race ObjectId")
+@click.option("--race-id", required=True, multiple=True, help="Race ObjectId (can specify multiple)")
 def clear_race_runners(race_id):
-    """Remove all runners from a race (for fixing incorrect formdata matches)."""
-    race = db.races.find_one({"_id": ObjectId(race_id)}, {"_id": 1, "title": 1})
-    if not race:
-        click.echo(f"Race not found: {race_id}")
-        return
-    click.echo(f"Race: {race['title']} ({race_id})")
-    click.confirm("Remove all runners?", abort=True)
-    db.races.update_one({"_id": ObjectId(race_id)}, {"$set": {"runners": []}})
-    click.echo("Runners cleared.")
+    """Remove all runners from one or more races (for fixing incorrect formdata matches)."""
+    for rid in race_id:
+        race = db.races.find_one({"_id": ObjectId(rid)}, {"_id": 1, "title": 1})
+        if not race:
+            click.echo(f"Race not found: {rid}")
+            return
+        click.echo(f"  {race['title']} ({rid})")
+    click.confirm(f"Remove all runners from {len(race_id)} race(s)?", abort=True)
+    for rid in race_id:
+        db.races.update_one({"_id": ObjectId(rid)}, {"$set": {"runners": []}})
+    click.echo(f"Runners cleared from {len(race_id)} race(s).")
 
 
 if __name__ == "__main__":
