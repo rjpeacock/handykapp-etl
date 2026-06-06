@@ -101,16 +101,21 @@ def find_candidate_race(racecourse_id, run):
 
         skel_raw = re.sub(r"[^\d]", "", race.get("prize", "") or "")
         skel_prize_k = int(skel_raw) // 1000 if skel_raw else None
-        if fd_prize_k is not None and skel_prize_k is not None and fd_prize_k != skel_prize_k:
+        if (
+            fd_prize_k is not None
+            and skel_prize_k is not None
+            and fd_prize_k != skel_prize_k
+        ):
             continue
 
         if fd_is_hcap != race.get("is_handicap", False):
             continue
 
-        if fd_age:
-            db_age = _parse_db_age(race.get("age_restriction"))
-            if db_age and db_age != fd_age:
-                continue
+        skel_age = _parse_db_age(race.get("age_restriction"))
+        if fd_age and skel_age != fd_age:
+            continue
+        if skel_age in ("2", "3"):
+            continue
 
         candidates.append(race)
 
@@ -172,8 +177,7 @@ def result_line_processor() -> Generator[None, tuple[dict, FormdataRun], None]:
                     )
                     continue
                 if not any(
-                    r.get("horse") == horse["_id"]
-                    for r in race.get("runners", [])
+                    r.get("horse") == horse["_id"] for r in race.get("runners", [])
                 ):
                     db.races.update_one(
                         {"_id": race["_id"]},
