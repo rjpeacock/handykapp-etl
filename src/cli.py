@@ -210,5 +210,19 @@ def mark_non_runners(set_position, dry_run, limit):
         click.echo(f"Marked {total} non-runner(s) across {len(modified)} race(s).")
 
 
+@cli.command()
+@click.option("--race-id", required=True, help="Race ObjectId")
+def clear_race_runners(race_id):
+    """Remove all runners from a race (for fixing incorrect formdata matches)."""
+    race = db.races.find_one({"_id": ObjectId(race_id)}, {"_id": 1, "title": 1})
+    if not race:
+        click.echo(f"Race not found: {race_id}")
+        return
+    click.echo(f"Race: {race['title']} ({race_id})")
+    click.confirm("Remove all runners?", abort=True)
+    db.races.update_one({"_id": ObjectId(race_id)}, {"$set": {"runners": []}})
+    click.echo("Runners cleared.")
+
+
 if __name__ == "__main__":
     cli()
