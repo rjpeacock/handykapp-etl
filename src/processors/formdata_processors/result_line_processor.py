@@ -71,6 +71,8 @@ def find_candidate_race(racecourse_id, run):
     fd_is_hcap = "H" in run.race_type
     fd_age = _parse_fd_age(run.race_type)
 
+    candidates = []
+
     for race in db.races.find(
         {
             "racecourse": racecourse_id,
@@ -110,7 +112,17 @@ def find_candidate_race(racecourse_id, run):
             if db_age and db_age != fd_age:
                 continue
 
-        return race
+        candidates.append(race)
+
+    if len(candidates) == 1:
+        return candidates[0]
+
+    if len(candidates) > 1:
+        logger = get_run_logger()
+        logger.warning(
+            f"{len(candidates)} candidates for {run.course} {run.date}: "
+            f"{[str(c['_id']) for c in candidates]}"
+        )
 
     return None
 
