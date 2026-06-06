@@ -86,6 +86,20 @@ def get_horse(horse: PreMongoHorse) -> dict | None:
     return None
 
 
+def find_horses_by_name(name, country=None, year=None):
+    query = {
+        "name": {
+            "$regex": f"^{create_apostrophe_regex(name)}$",
+            "$options": "i",
+        }
+    }
+    if country:
+        query["country"] = country
+    if year is not None:
+        query["year"] = year
+    return list(db.horses.find(query).sort("year", -1))
+
+
 type NewmarketRacecourse = Literal["Newmarket July", "Newmarket Rowley"]
 
 
