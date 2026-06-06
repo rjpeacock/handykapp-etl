@@ -53,10 +53,23 @@ def _apply_result_to_race(found_race, horse, run, pp, logger):
     )
 
 
+def _parse_fd_age(race_type: str) -> str | None:
+    if m := re.match(r"^(\d+)", race_type):
+        return m.group(1)
+    return None
+
+
+def _parse_db_age(age_restriction: str | None) -> str | None:
+    if age_restriction and (m := re.match(r"^(\d+)", age_restriction)):
+        return m.group(1)
+    return None
+
+
 def find_candidate_race(racecourse_id, run):
     fd_dist = RaceDistance(f"{run.distance}f").furlongs
     fd_prize_k = int(run.win_prize)
     fd_is_hcap = "H" in run.race_type
+    fd_age = _parse_fd_age(run.race_type)
 
     for race in db.races.find(
         {
@@ -91,6 +104,11 @@ def find_candidate_race(racecourse_id, run):
 
         if fd_is_hcap != race.get("is_handicap", False):
             continue
+
+        if fd_age:
+            db_age = _parse_db_age(race.get("age_restriction"))
+            if db_age and db_age != fd_age:
+                continue
 
         return race
 
