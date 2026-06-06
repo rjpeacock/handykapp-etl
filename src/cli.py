@@ -10,7 +10,7 @@ from bson import ObjectId
 from pymongo.errors import DuplicateKeyError
 
 from clients import mongo_client as client
-from clients.mongo_client import get_horse
+from clients.mongo_client import find_horses_by_name, get_horse
 from models import PreMongoHorse
 from utilities.non_runners import mark_non_runners as mark_non_runners_util
 from utilities.race_duplicates import find_duplicate_horses, resolve_duplicates
@@ -43,9 +43,37 @@ def create_horse(name, country, year):
 
 @cli.command()
 @click.option("--race-id", required=True, help="Race ObjectId")
-@click.option("--horse-id", required=True, help="Horse ObjectId")
-def add_horse_to_race(race_id, horse_id):
+@click.option("--horse-id", default=None, help="Horse ObjectId")
+@click.option("--name", default=None, help="Horse name")
+@click.option("--country", default=None, help="Country code (e.g. GB, IRE)")
+@click.option("--year", type=int, default=None, help="Foaling year")
+def add_horse_to_race(race_id, horse_id, name, country, year):
     """Add a horse to a race's runners array ($addToSet)."""
+    if not horse_id:
+        if not name:
+            click.echo("Must provide --horse-id or --name")
+            return
+        horses = find_horses_by_name(name, country, year)
+        if not horses:
+            click.echo(f"No horses found matching '{name}'")
+            return
+        if len(horses) > 1:
+            click.echo(f"Multiple horses found matching '{name}':")
+            for i, h in enumerate(horses, 1):
+                click.echo(
+                    f"  {i}. {h['name']} "
+                    f"({h.get('country', '-')}, {h.get('year', '-')})"
+                )
+            choice = click.prompt(
+                f"Select horse [1-{len(horses)}]", type=int
+            )
+            if not 1 <= choice <= len(horses):
+                click.echo("Invalid choice")
+                return
+            horse_id = str(horses[choice - 1]["_id"])
+        else:
+            horse_id = str(horses[0]["_id"])
+
     result = db.races.update_one(
         {"_id": ObjectId(race_id)},
         {"$addToSet": {"runners": {"horse": ObjectId(horse_id)}}},
