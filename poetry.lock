@@ -2353,14 +2353,14 @@ files = [
 
 [[package]]
 name = "nameparser"
-version = "1.1.3"
+version = "2.0.0"
 description = "A simple Python module for parsing human names into their individual components."
 optional = false
-python-versions = "*"
+python-versions = ">=3.11"
 groups = ["main"]
 files = [
-    {file = "nameparser-1.1.3-py2.py3-none-any.whl", hash = "sha256:08ccda98681d59751c82052d52f185bc52f99d43e87d46b85c015a9096ecfa66"},
-    {file = "nameparser-1.1.3.tar.gz", hash = "sha256:aa2400ad71ccf8070675b40311a257c934659f91854b154e1ba6c264761c049d"},
+    {file = "nameparser-2.0.0-py3-none-any.whl", hash = "sha256:8c8a9e8c82662d9795bdb85fdb32b8ceb480aa58a4bee36e0d52c8d1322e3b73"},
+    {file = "nameparser-2.0.0.tar.gz", hash = "sha256:641350d40ab31ec1ce8ab4d701757e7e1b1a35eb6fcf3f34d5e8c6d9a787d2a9"},
 ]
 
 [[package]]
@@ -5075,4 +5075,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.13"
-content-hash = "736bf7fb4f9207a648a7f3ca6fa3ee13161b5e8b19bb13d0f0fcd49d7b4750f7"
+content-hash = "8c152326e87be29d43edb527094e6cdfea782b809805361894eb118a8f6877c2"
